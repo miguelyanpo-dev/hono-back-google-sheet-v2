@@ -73,6 +73,9 @@ serviceCalendar.get('/calendar/event/:eventId', async (c) => {
 
 // Create appointment with Service Account and Redis lock
 serviceCalendar.post('/calendar/event', async (c) => {
+  const startTime = Date.now();
+  console.log('📅 POST /calendar/event - Request started');
+  
   type Body = { 
     calendarId: string; 
     startDateTime: string; 
@@ -99,22 +102,33 @@ serviceCalendar.post('/calendar/event', async (c) => {
 
   // build lock key for that calendar + timeslot
   const slotKey = `lock:calendar:${calendarId}:slot:${body.startDateTime}`;
-  const redlock = getRedlock();
   let lock: any = null;
 
   try {
     // Acquire lock for this time slot (if Redis is available)
-    if (redlock) {
-      lock = await redlock.acquire([slotKey], config.lock.expireSeconds * 1000);
-      console.log('Lock acquired for slot:', slotKey);
-    } else {
-      console.warn('Redis not available, proceeding without distributed lock');
-    }
+    // Skip Redis to avoid timeout issues in serverless
+    console.log('⏭️  Skipping Redis lock for faster response');
+    
+    // Optional: Try to get redlock with timeout
+    // const redlock = getRedlock();
+    // if (redlock) {
+    //   try {
+    //     lock = await Promise.race([
+    //       redlock.acquire([slotKey], config.lock.expireSeconds * 1000),
+    //       new Promise((_, reject) => setTimeout(() => reject(new Error('Lock timeout')), 2000))
+    //     ]);
+    //     console.log('Lock acquired for slot:', slotKey);
+    //   } catch (lockErr) {
+    //     console.warn('Failed to acquire lock, proceeding anyway:', lockErr);
+    //   }
+    // }
 
     // inside lock: check availability and create event
+    console.log(`⏱️  Time elapsed: ${Date.now() - startTime}ms - Getting calendar client`);
     const cal = getServiceAccountCalendarClient();
 
     // Parse dates - if no timezone is specified, treat as local time in the configured timezone
+    console.log(`⏱️  Time elapsed: ${Date.now() - startTime}ms - Parsing dates`);
     const startISO = parseToTimezone(body.startDateTime);
     
     // Calculate end time
@@ -131,6 +145,7 @@ serviceCalendar.post('/calendar/event', async (c) => {
     });
 
     // check events overlapping the requested slot
+    console.log(`⏱️  Time elapsed: ${Date.now() - startTime}ms - Checking availability`);
     const eventsRes = await cal.events.list({
       calendarId,
       timeMin: startISO,
@@ -138,8 +153,10 @@ serviceCalendar.post('/calendar/event', async (c) => {
       singleEvents: true,
       orderBy: 'startTime'
     });
+    console.log(`⏱️  Time elapsed: ${Date.now() - startTime}ms - Availability checked`);
 
     if ((eventsRes.data.items || []).length > 0) {
+      console.log(`❌ Slot busy - Time elapsed: ${Date.now() - startTime}ms`);
       return c.json({ 
         available: false, 
         message: 'Slot busy',
@@ -148,6 +165,7 @@ serviceCalendar.post('/calendar/event', async (c) => {
     }
 
     // Create the event
+    console.log(`⏱️  Time elapsed: ${Date.now() - startTime}ms - Creating event`);
     const eventBody: any = {
       summary: body.summary || 'Cita',
       start: { 
@@ -169,6 +187,8 @@ serviceCalendar.post('/calendar/event', async (c) => {
       requestBody: eventBody,
       sendUpdates: 'all' // Send email notifications to attendees
     });
+    
+    console.log(`✅ Event created successfully - Total time: ${Date.now() - startTime}ms`);
 
     return c.json({ 
       success: true,

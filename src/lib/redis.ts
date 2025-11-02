@@ -17,10 +17,12 @@ function getRedis() {
   try {
     // reuse connection across invocations in serverless
     redisClient = new Redis(config.redis.url, {
-      lazyConnect: false,
-      maxRetriesPerRequest: 3,
-      enableReadyCheck: true,
-      connectTimeout: 5000, // 5 segundos timeout
+      lazyConnect: true, // No conectar inmediatamente
+      maxRetriesPerRequest: 1, // Solo 1 reintento
+      enableReadyCheck: false, // Desactivar ready check
+      connectTimeout: 2000, // 2 segundos timeout
+      commandTimeout: 2000, // 2 segundos para comandos
+      enableOfflineQueue: false, // No encolar comandos si está offline
       // enable TLS if URL uses rediss://
     });
     

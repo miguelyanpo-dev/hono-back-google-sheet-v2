@@ -18,11 +18,18 @@ function getRedis() {
     // reuse connection across invocations in serverless
     redisClient = new Redis(config.redis.url, {
       lazyConnect: true, // No conectar inmediatamente
-      maxRetriesPerRequest: 1, // Solo 1 reintento
+      maxRetriesPerRequest: 2, // Aumentar reintentos a 2
       enableReadyCheck: false, // Desactivar ready check
-      connectTimeout: 2000, // 2 segundos timeout
-      commandTimeout: 2000, // 2 segundos para comandos
+      connectTimeout: 3000, // 3 segundos timeout (aumentado)
+      commandTimeout: 3000, // 3 segundos para comandos (aumentado)
       enableOfflineQueue: false, // No encolar comandos si está offline
+      retryStrategy(times) {
+        // Estrategia de reintento exponencial con límite
+        if (times > 3) {
+          return null; // Detener reintentos después de 3 intentos
+        }
+        return Math.min(times * 200, 1000); // Máximo 1 segundo entre reintentos
+      },
       // enable TLS if URL uses rediss://
     });
     
@@ -32,6 +39,10 @@ function getRedis() {
     
     redisClient.on('connect', () => {
       console.log('Redis connected successfully');
+    });
+    
+    redisClient.on('close', () => {
+      console.warn('Redis connection closed');
     });
     
     return redisClient;

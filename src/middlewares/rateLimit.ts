@@ -41,6 +41,11 @@ export function rateLimit(options: Partial<RateLimitOptions> = {}) {
     const windowStart = now - opts.windowMs;
 
     try {
+      // Asegurar que Redis está conectado antes de ejecutar comandos
+      if (redis.status !== 'ready') {
+        await redis.connect();
+      }
+      
       // Usar Redis para contar peticiones
       const multi = redis.multi();
       
@@ -86,7 +91,8 @@ export function rateLimit(options: Partial<RateLimitOptions> = {}) {
       
     } catch (error) {
       console.error('Rate limit error:', error);
-      // En caso de error con Redis, permitir la petición
+      // En caso de error con Redis, permitir la petición sin rate limiting
+      // Esto evita que fallos de Redis bloqueen la aplicación
       await next();
     }
   };

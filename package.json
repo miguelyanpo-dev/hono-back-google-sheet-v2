@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "build": "tsc",
+    "vercel-build": "echo 'Building for Vercel...' && tsc",
     "start": "node dist/index.js",
     "type-check": "tsc --noEmit",
     "test:timezone": "node test-timezone.js"

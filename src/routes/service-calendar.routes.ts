@@ -1,0 +1,315 @@
+import { Hono } from 'hono';
+import { getServiceAccountCalendarClient } from '../lib/google';
+import { config } from '../config/config';
+import { getRedlock } from '../lib/redis';
+import { parseToTimezone } from '../lib/timezone';
+
+const serviceCalendar = new Hono();
+
+// List calendars using Service Account
+serviceCalendar.get('/calendar/list', async (c) => {
+  try {
+    const cal = getServiceAccountCalendarClient();
+    const res = await cal.calendarList.list();
+    return c.json({ 
+      success: true,
+      items: res.data.items || [] 
+    });
+  } catch (err: any) {
+    console.error('list calendars error:', err);
+    return c.json({ error: 'calendar_list_failed', details: err.message }, 500);
+  }
+});
+
+// Get events from a calendar using Service Account
+serviceCalendar.get('/calendar/events', async (c) => {
+  const calendarId = c.req.query('calendarId') || config.calendar.defaultCalendarId;
+  // Accept both timeMin/timeMax and periodStart/periodEnd
+  const timeMin = c.req.query('timeMin') || c.req.query('periodStart');
+  const timeMax = c.req.query('timeMax') || c.req.query('periodEnd');
+  
+  try {
+    const cal = getServiceAccountCalendarClient();
+    const params: any = {
+      calendarId,
+      singleEvents: true,
+      orderBy: 'startTime'
+    };
+    
+    if (timeMin) params.timeMin = timeMin;
+    if (timeMax) params.timeMax = timeMax;
+    
+    const res = await cal.events.list(params);
+    return c.json({ 
+      success: true,
+      events: res.data.items || [] 
+    });
+  } catch (err: any) {
+    console.error('list events error:', err);
+    return c.json({ error: 'events_list_failed', details: err.message }, 500);
+  }
+});
+
+// Get a specific event using Service Account
+serviceCalendar.get('/calendar/event/:eventId', async (c) => {
+  const eventId = c.req.param('eventId');
+  const calendarId = c.req.query('calendarId') || config.calendar.defaultCalendarId;
+  
+  try {
+    const cal = getServiceAccountCalendarClient();
+    const res = await cal.events.get({
+      calendarId,
+      eventId
+    });
+    return c.json({ 
+      success: true,
+      event: res.data 
+    });
+  } catch (err: any) {
+    console.error('get event error:', err);
+    return c.json({ error: 'event_get_failed', details: err.message }, 500);
+  }
+});
+
+// Create appointment with Service Account and Redis lock
+serviceCalendar.post('/calendar/event', async (c) => {
+  type Body = { 
+    calendarId?: string; 
+    startDateTime: string; 
+    endDateTime?: string; 
+    summary?: string; 
+    description?: string;
+    location?: string;
+    attendees?: Array<{ email: string }>;
+  };
+  
+  const body = await c.req.json<Body>();
+  const calendarId = body.calendarId || config.calendar.defaultCalendarId;
+  
+  if (!body.startDateTime) {
+    return c.json({ error: 'startDateTime required' }, 400);
+  }
+
+  // build lock key for that calendar + timeslot
+  const slotKey = `lock:calendar:${calendarId}:slot:${body.startDateTime}`;
+  const redlock = getRedlock();
+  let lock: any = null;
+
+  try {
+    // Acquire lock for this time slot
+    lock = await redlock.acquire([slotKey], config.lock.expireSeconds * 1000);
+
+    // inside lock: check availability and create event
+    const cal = getServiceAccountCalendarClient();
+
+    // Parse dates - if no timezone is specified, treat as local time in the configured timezone
+    const startISO = parseToTimezone(body.startDateTime);
+    
+    // Calculate end time
+    const endISO = body.endDateTime 
+      ? parseToTimezone(body.endDateTime)
+      : new Date(new Date(startISO).getTime() + config.calendar.appointmentDuration * 60000).toISOString();
+
+    console.log('Creating event:', {
+      startDateTime: body.startDateTime,
+      endDateTime: body.endDateTime,
+      startISO,
+      endISO,
+      timezone: config.calendar.timezone
+    });
+
+    // check events overlapping the requested slot
+    const eventsRes = await cal.events.list({
+      calendarId,
+      timeMin: startISO,
+      timeMax: endISO,
+      singleEvents: true,
+      orderBy: 'startTime'
+    });
+
+    if ((eventsRes.data.items || []).length > 0) {
+      return c.json({ 
+        available: false, 
+        message: 'Slot busy',
+        conflictingEvents: eventsRes.data.items 
+      }, 409);
+    }
+
+    // Create the event
+    const eventBody: any = {
+      summary: body.summary || 'Cita',
+      start: { 
+        dateTime: startISO,
+        timeZone: config.calendar.timezone
+      },
+      end: { 
+        dateTime: endISO,
+        timeZone: config.calendar.timezone
+      }
+    };
+    
+    if (body.description) eventBody.description = body.description;
+    if (body.location) eventBody.location = body.location;
+    if (body.attendees) eventBody.attendees = body.attendees;
+
+    const created = await cal.events.insert({
+      calendarId,
+      requestBody: eventBody,
+      sendUpdates: 'all' // Send email notifications to attendees
+    });
+
+    return c.json({ 
+      success: true,
+      available: true, 
+      event: created.data 
+    });
+  } catch (err: any) {
+    console.error('create event error:', err);
+    console.error('Error details:', {
+      message: err.message,
+      code: err.code,
+      errors: err.errors,
+      response: err.response?.data
+    });
+    return c.json({ 
+      error: 'create_event_failed', 
+      details: err.message,
+      code: err.code,
+      apiErrors: err.errors
+    }, 500);
+  } finally {
+    try {
+      if (lock) await lock.release();
+    } catch (e) {
+      console.error('Error releasing lock:', e);
+    }
+  }
+});
+
+// Update an event using Service Account
+serviceCalendar.put('/calendar/event/:eventId', async (c) => {
+  const eventId = c.req.param('eventId');
+  
+  type Body = {
+    calendarId?: string;
+    summary?: string;
+    description?: string;
+    location?: string;
+    startDateTime?: string;
+    endDateTime?: string;
+    attendees?: Array<{ email: string }>;
+  };
+  
+  const body = await c.req.json<Body>();
+  const calendarId = body.calendarId || config.calendar.defaultCalendarId;
+  
+  try {
+    const cal = getServiceAccountCalendarClient();
+    
+    // Get existing event
+    const existing = await cal.events.get({
+      calendarId,
+      eventId
+    });
+    
+    // Update fields
+    const eventBody: any = { ...existing.data };
+    if (body.summary) eventBody.summary = body.summary;
+    if (body.description) eventBody.description = body.description;
+    if (body.location) eventBody.location = body.location;
+    if (body.attendees) eventBody.attendees = body.attendees;
+    if (body.startDateTime) {
+      eventBody.start = { 
+        dateTime: new Date(body.startDateTime).toISOString(),
+        timeZone: config.calendar.timezone
+      };
+    }
+    if (body.endDateTime) {
+      eventBody.end = { 
+        dateTime: new Date(body.endDateTime).toISOString(),
+        timeZone: config.calendar.timezone
+      };
+    }
+    
+    const updated = await cal.events.update({
+      calendarId,
+      eventId,
+      requestBody: eventBody,
+      sendUpdates: 'all'
+    });
+    
+    return c.json({ 
+      success: true,
+      event: updated.data 
+    });
+  } catch (err: any) {
+    console.error('update event error:', err);
+    return c.json({ error: 'event_update_failed', details: err.message }, 500);
+  }
+});
+
+// Delete an event using Service Account
+serviceCalendar.delete('/calendar/event/:eventId', async (c) => {
+  const eventId = c.req.param('eventId');
+  const calendarId = c.req.query('calendarId') || config.calendar.defaultCalendarId;
+  
+  try {
+    const cal = getServiceAccountCalendarClient();
+    await cal.events.delete({
+      calendarId,
+      eventId,
+      sendUpdates: 'all'
+    });
+    
+    return c.json({ 
+      success: true,
+      message: 'Event deleted successfully' 
+    });
+  } catch (err: any) {
+    console.error('delete event error:', err);
+    return c.json({ error: 'event_delete_failed', details: err.message }, 500);
+  }
+});
+
+// Check availability for a time slot using Service Account
+serviceCalendar.post('/calendar/check-availability', async (c) => {
+  type Body = {
+    calendarId?: string;
+    startDateTime: string;
+    endDateTime?: string;
+  };
+  
+  const body = await c.req.json<Body>();
+  const calendarId = body.calendarId || config.calendar.defaultCalendarId;
+  
+  if (!body.startDateTime) {
+    return c.json({ error: 'startDateTime required' }, 400);
+  }
+  
+  try {
+    const cal = getServiceAccountCalendarClient();
+    const endDateTime = body.endDateTime || 
+      new Date(new Date(body.startDateTime).getTime() + config.calendar.appointmentDuration * 60000).toISOString();
+    
+    const eventsRes = await cal.events.list({
+      calendarId,
+      timeMin: new Date(body.startDateTime).toISOString(),
+      timeMax: endDateTime,
+      singleEvents: true,
+      orderBy: 'startTime'
+    });
+    
+    const hasConflicts = (eventsRes.data.items || []).length > 0;
+    
+    return c.json({
+      success: true,
+      available: !hasConflicts,
+      conflictingEvents: hasConflicts ? eventsRes.data.items : []
+    });
+  } catch (err: any) {
+    console.error('check availability error:', err);
+    return c.json({ error: 'availability_check_failed', details: err.message }, 500);
+  }
+});
+
+export default serviceCalendar;

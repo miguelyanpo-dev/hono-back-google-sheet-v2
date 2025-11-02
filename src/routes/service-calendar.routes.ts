@@ -103,8 +103,13 @@ serviceCalendar.post('/calendar/event', async (c) => {
   let lock: any = null;
 
   try {
-    // Acquire lock for this time slot
-    lock = await redlock.acquire([slotKey], config.lock.expireSeconds * 1000);
+    // Acquire lock for this time slot (if Redis is available)
+    if (redlock) {
+      lock = await redlock.acquire([slotKey], config.lock.expireSeconds * 1000);
+      console.log('Lock acquired for slot:', slotKey);
+    } else {
+      console.warn('Redis not available, proceeding without distributed lock');
+    }
 
     // inside lock: check availability and create event
     const cal = getServiceAccountCalendarClient();

@@ -7,42 +7,68 @@ let redlock: Redlock | null = null;
 
 function getRedis() {
   if (redisClient) return redisClient;
-  // reuse connection across invocations in serverless
-  redisClient = new Redis(config.redis.url, {
-    lazyConnect: false,
-    maxRetriesPerRequest: 3,
-    enableReadyCheck: true,
-    // enable TLS if URL uses rediss://
-  });
   
-  redisClient.on('error', (err) => {
-    console.error('Redis connection error:', err);
-  });
+  // Si no hay URL de Redis configurada, retornar null
+  if (!config.redis.url) {
+    console.warn('Redis URL not configured, Redis features will be disabled');
+    return null;
+  }
   
-  redisClient.on('connect', () => {
-    console.log('Redis connected successfully');
-  });
-  
-  return redisClient;
+  try {
+    // reuse connection across invocations in serverless
+    redisClient = new Redis(config.redis.url, {
+      lazyConnect: false,
+      maxRetriesPerRequest: 3,
+      enableReadyCheck: true,
+      connectTimeout: 5000, // 5 segundos timeout
+      // enable TLS if URL uses rediss://
+    });
+    
+    redisClient.on('error', (err) => {
+      console.error('Redis connection error:', err);
+    });
+    
+    redisClient.on('connect', () => {
+      console.log('Redis connected successfully');
+    });
+    
+    return redisClient;
+  } catch (err) {
+    console.error('Failed to initialize Redis:', err);
+    return null;
+  }
 }
 
 function getRedlock() {
   if (redlock) return redlock;
+  
   const client = getRedis();
-  redlock = new Redlock([client], {
-    // recommended defaults
-    driftFactor: 0.01,
-    retryCount: config.lock.retryCount,
-    retryDelay: config.lock.retryDelay,
-    retryJitter: 50,
-    automaticExtensionThreshold: 500
-  });
   
-  redlock.on('error', (err) => {
-    console.error('Redlock error:', err);
-  });
+  // Si Redis no está disponible, retornar null
+  if (!client) {
+    console.warn('Redis not available, distributed locking disabled');
+    return null;
+  }
   
-  return redlock;
+  try {
+    redlock = new Redlock([client], {
+      // recommended defaults
+      driftFactor: 0.01,
+      retryCount: config.lock.retryCount,
+      retryDelay: config.lock.retryDelay,
+      retryJitter: 50,
+      automaticExtensionThreshold: 500
+    });
+    
+    redlock.on('error', (err) => {
+      console.error('Redlock error:', err);
+    });
+    
+    return redlock;
+  } catch (err) {
+    console.error('Failed to initialize Redlock:', err);
+    return null;
+  }
 }
 
 export { getRedis, getRedlock };

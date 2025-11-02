@@ -11,7 +11,7 @@ const app = new Hono();
 // CORS middleware
 const corsOrigins = process.env.CORS_ORIGIN 
   ? process.env.CORS_ORIGIN.split(',').map(origin => origin.trim())
-  : '*';
+  : ['*'];
 
 app.use('*', cors({
   origin: corsOrigins,

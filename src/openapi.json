@@ -7,6 +7,10 @@
   },
   "servers": [
     {
+      "url": "https://back-agendamiento-class-barber.vercel.app",
+      "description": "Servidor de producción"
+    },
+    {
       "url": "http://localhost:3001",
       "description": "Servidor de desarrollo"
     }

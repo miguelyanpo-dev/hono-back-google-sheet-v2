@@ -1,7 +1,15 @@
 # Solución al Error 504 Timeout en Vercel
 
-## Problema
-Error 504 FUNCTION_INVOCATION_TIMEOUT al hacer POST a `/api/calendar/event`
+## Problemas Identificados
+
+### 1. Error 504 FUNCTION_INVOCATION_TIMEOUT
+Al hacer POST a `/api/calendar/event`
+
+### 2. Error de Rate Limiting
+```
+Rate limit error: Error: Stream isn't writeable and enableOfflineQueue options is false
+```
+El middleware de rate limiting intentaba usar Redis sin verificar disponibilidad
 
 ## Cambios Realizados
 
@@ -12,17 +20,22 @@ Error 504 FUNCTION_INVOCATION_TIMEOUT al hacer POST a `/api/calendar/event`
 - **commandTimeout: 2000ms** - Timeout para comandos
 - **enableOfflineQueue: false** - No encolar comandos si está offline
 
-### 2. Redis Lock Deshabilitado Temporalmente (`src/routes/service-calendar.routes.ts`)
+### 2. Rate Limiting Arreglado (`src/middlewares/rateLimit.ts`)
+- Verificación de Redis disponible antes de usarlo
+- Si Redis no está disponible, el rate limiting se deshabilita automáticamente
+- No bloquea las peticiones cuando Redis no está configurado
+
+### 3. Redis Lock Deshabilitado Temporalmente (`src/routes/service-calendar.routes.ts`)
 - Redis lock comentado para evitar timeouts
 - Se puede habilitar después de verificar que funciona sin él
 - Logging detallado agregado para identificar cuellos de botella
 
-### 3. Timeout Aumentado (`vercel.json`)
+### 4. Timeout Aumentado (`vercel.json`)
 - Aumentado de 10 a 30 segundos
 - **NOTA**: En plan gratuito de Vercel, el máximo es 10 segundos
 - Para 30 segundos necesitas plan Pro ($20/mes)
 
-### 4. Logging Detallado
+### 5. Logging Detallado
 - Timestamps en cada paso del proceso
 - Identificar dónde se está tardando más tiempo
 

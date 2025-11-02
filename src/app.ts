@@ -25,12 +25,15 @@ app.use('*', cors({
 // Logger middleware (dev)
 app.use('*', logger());
 
-// Rate limiting middleware
+// Rate limiting middleware (requires Redis)
 if (config.rateLimit.enabled) {
+  console.log('Rate limiting enabled');
   app.use('/api/*', rateLimit({
     windowMs: config.rateLimit.windowMs,
     maxRequests: config.rateLimit.maxRequests
   }));
+} else {
+  console.log('Rate limiting disabled');
 }
 
 // Health check

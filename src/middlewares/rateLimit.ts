@@ -23,6 +23,13 @@ export function rateLimit(options: Partial<RateLimitOptions> = {}) {
   const redis = getRedis();
 
   return async (c: Context, next: Next) => {
+    // Si Redis no está disponible, permitir la petición sin rate limiting
+    if (!redis) {
+      console.warn('Rate limiting disabled: Redis not available');
+      await next();
+      return;
+    }
+
     // Obtener IP del cliente
     const ip = c.req.header('x-forwarded-for')?.split(',')[0].trim() 
       || c.req.header('x-real-ip') 

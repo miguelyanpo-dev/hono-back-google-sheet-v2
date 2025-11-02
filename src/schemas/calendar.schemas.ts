@@ -1,10 +1,10 @@
-import { z } from 'zod';
+import { z } from '@hono/zod-openapi';
 
 // Request schemas
 export const CreateEventSchema = z.object({
-  calendarId: z.string().optional().openapi({
-    example: 'primary',
-    description: 'ID del calendario. Si no se proporciona, se usa el calendario por defecto'
+  calendarId: z.string().min(1).openapi({
+    example: 'barbero1@classbarber.com',
+    description: 'ID del calendario donde se creará el evento. Requerido para identificar el calendario específico cuando hay múltiples calendarios disponibles'
   }),
   startDateTime: z.string().datetime().openapi({
     example: '2024-10-30T10:00:00Z',
@@ -23,8 +23,12 @@ export const CreateEventSchema = z.object({
     description: 'Descripción detallada del evento'
   }),
   location: z.string().optional().openapi({
-    example: 'Consultorio 101, Calle Principal #123',
+    example: 'ClassBarber - Sede Principal',
     description: 'Ubicación del evento'
+  }),
+  name: z.string().optional().openapi({
+    example: 'Juan Pérez',
+    description: 'Nombre del cliente que agenda la cita'
   }),
   attendees: z.array(z.object({
     email: z.string().email()

@@ -62,17 +62,18 @@ La documentación Swagger incluye:
 
 1. Ve a `POST /api/calendar/event`
 2. Haz clic en "Try it out"
-3. Modifica el JSON de ejemplo:
+3. Modifica el JSON de ejemplo (el campo `calendarId` es REQUERIDO):
    ```json
    {
+     "calendarId": "barbero1@classbarber.com",
      "startDateTime": "2024-10-30T10:00:00Z",
      "endDateTime": "2024-10-30T11:00:00Z",
-     "summary": "Cita médica",
-     "description": "Consulta general",
-     "location": "Consultorio 101",
+     "summary": "Corte de pelo - Cliente Juan",
+     "description": "Corte clásico",
+     "location": "ClassBarber - Sede Principal",
      "attendees": [
        {
-         "email": "paciente@example.com"
+         "email": "cliente@example.com"
        }
      ]
    }

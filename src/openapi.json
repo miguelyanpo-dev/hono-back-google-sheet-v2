@@ -378,8 +378,8 @@
     "/api/calendar/event": {
       "post": {
         "tags": ["Eventos"],
-        "summary": "Crear evento",
-        "description": "Crea un nuevo evento en el calendario. Utiliza un sistema de bloqueo con Redis para evitar conflictos de reserva en el mismo horario.",
+        "summary": "Crear evento en un calendario específico",
+        "description": "Crea un nuevo evento en el calendario especificado. El campo calendarId es REQUERIDO para identificar el calendario donde se creará el evento. Utiliza un sistema de bloqueo con Redis para evitar conflictos de reserva en el mismo horario.",
         "requestBody": {
           "required": true,
           "content": {
@@ -533,12 +533,12 @@
     "schemas": {
       "CreateEvent": {
         "type": "object",
-        "required": ["startDateTime"],
+        "required": ["calendarId", "startDateTime"],
         "properties": {
           "calendarId": {
             "type": "string",
-            "description": "ID del calendario. Si no se proporciona, se usa el calendario por defecto",
-            "example": "primary"
+            "description": "ID del calendario donde se creará el evento. Requerido para identificar el calendario específico cuando hay múltiples calendarios disponibles",
+            "example": "barbero1@classbarber.com"
           },
           "startDateTime": {
             "type": "string",
@@ -555,31 +555,22 @@
           "summary": {
             "type": "string",
             "description": "Título o resumen del evento",
-            "example": "Cita médica"
+            "example": "Corte de pelo - Juan Pérez"
           },
           "description": {
             "type": "string",
             "description": "Descripción detallada del evento",
-            "example": "Consulta general con el Dr. García"
+            "example": "Corte clásico y arreglo de barba"
           },
           "location": {
             "type": "string",
             "description": "Ubicación del evento",
-            "example": "Consultorio 101, Calle Principal #123"
+            "example": "ClassBarber - Sede Principal"
           },
-          "attendees": {
-            "type": "array",
-            "description": "Lista de asistentes al evento",
-            "items": {
-              "type": "object",
-              "properties": {
-                "email": {
-                  "type": "string",
-                  "format": "email",
-                  "example": "paciente@example.com"
-                }
-              }
-            }
+          "name": {
+            "type": "string",
+            "description": "Nombre del cliente que agenda la cita",
+            "example": "Juan Pérez"
           }
         }
       },

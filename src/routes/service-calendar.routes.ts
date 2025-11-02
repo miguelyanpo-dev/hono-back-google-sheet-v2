@@ -74,21 +74,28 @@ serviceCalendar.get('/calendar/event/:eventId', async (c) => {
 // Create appointment with Service Account and Redis lock
 serviceCalendar.post('/calendar/event', async (c) => {
   type Body = { 
-    calendarId?: string; 
+    calendarId: string; 
     startDateTime: string; 
     endDateTime?: string; 
     summary?: string; 
     description?: string;
     location?: string;
+    name?: string;
     attendees?: Array<{ email: string }>;
   };
   
   const body = await c.req.json<Body>();
-  const calendarId = body.calendarId || config.calendar.defaultCalendarId;
+  
+  // Validar campos requeridos
+  if (!body.calendarId) {
+    return c.json({ error: 'calendarId is required' }, 400);
+  }
   
   if (!body.startDateTime) {
-    return c.json({ error: 'startDateTime required' }, 400);
+    return c.json({ error: 'startDateTime is required' }, 400);
   }
+  
+  const calendarId = body.calendarId;
 
   // build lock key for that calendar + timeslot
   const slotKey = `lock:calendar:${calendarId}:slot:${body.startDateTime}`;

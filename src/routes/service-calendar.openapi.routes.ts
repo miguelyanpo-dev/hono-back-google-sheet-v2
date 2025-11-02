@@ -202,8 +202,8 @@ const createEventRoute = createRoute({
   method: 'post',
   path: '/calendar/event',
   tags: ['Eventos'],
-  summary: 'Crear evento',
-  description: 'Crea un nuevo evento en el calendario. Utiliza un sistema de bloqueo con Redis para evitar conflictos de reserva en el mismo horario.',
+  summary: 'Crear evento en un calendario específico',
+  description: 'Crea un nuevo evento en el calendario especificado. El campo calendarId es REQUERIDO para identificar el calendario donde se creará el evento. Utiliza un sistema de bloqueo con Redis para evitar conflictos de reserva en el mismo horario.',
   request: {
     body: {
       content: {
@@ -255,11 +255,17 @@ const createEventRoute = createRoute({
 
 serviceCalendar.openapi(createEventRoute, async (c) => {
   const body = c.req.valid('json');
-  const calendarId = body.calendarId || config.calendar.defaultCalendarId;
+  
+  // Validar campos requeridos
+  if (!body.calendarId) {
+    return c.json({ error: 'calendarId is required' }, 400);
+  }
   
   if (!body.startDateTime) {
-    return c.json({ error: 'startDateTime required' }, 400);
+    return c.json({ error: 'startDateTime is required' }, 400);
   }
+  
+  const calendarId = body.calendarId;
 
   const slotKey = `lock:calendar:${calendarId}:slot:${body.startDateTime}`;
   const redlock = getRedlock();

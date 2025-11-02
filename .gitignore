@@ -74,3 +74,4 @@ ehthumbs.db
 # Seguro: ignores adicionales comunes
 *.cache
 *.tmp
+.vercel

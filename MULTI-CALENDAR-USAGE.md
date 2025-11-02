@@ -43,18 +43,17 @@ POST /api/calendar/event
 Content-Type: application/json
 
 {
-  "calendarId": "barbero1@classbarber.com",
-  "startDateTime": "2024-11-03T10:00:00Z",
-  "endDateTime": "2024-11-03T10:30:00Z",
-  "summary": "Corte de pelo - Cliente Juan",
-  "description": "Corte clásico",
+  "calendarId": "8c7ab21ba8a0d96b02f493d0b58abaa286f9af12db4366f4356baf8ad30d208f@group.calendar.google.com",
+  "startDateTime": "2025-11-07T09:00:00",
+  "endDateTime": "2025-11-07T10:00:00",
+  "summary": "Corte de pelo - Juan Pérez",
+  "description": "Corte clásico y arreglo de barba",
   "location": "ClassBarber - Sede Principal",
-  "email": "cliente@example.com",
   "name": "Juan Pérez"
 }
 ```
 
-**Nota**: El campo `email` agregará automáticamente al cliente como asistente del evento. Si también proporcionas `name`, se incluirá el nombre del cliente en la invitación.
+**Nota**: El campo `name` es opcional y se usa para identificar al cliente en el evento.
 
 **Respuesta exitosa:**
 ```json

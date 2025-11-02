@@ -538,19 +538,19 @@
           "calendarId": {
             "type": "string",
             "description": "ID del calendario donde se creará el evento. Requerido para identificar el calendario específico cuando hay múltiples calendarios disponibles",
-            "example": "barbero1@classbarber.com"
+            "example": "8c7ab21ba8a0d96b02f493d0b58abaa286f9af12db4366f4356baf8ad30d208f@group.calendar.google.com"
           },
           "startDateTime": {
             "type": "string",
             "format": "date-time",
             "description": "Fecha y hora de inicio del evento en formato ISO 8601",
-            "example": "2024-10-30T10:00:00Z"
+            "example": "2025-11-07T09:00:00"
           },
           "endDateTime": {
             "type": "string",
             "format": "date-time",
             "description": "Fecha y hora de fin del evento. Si no se proporciona, se calcula automáticamente",
-            "example": "2024-10-30T11:00:00Z"
+            "example": "2025-11-07T10:00:00"
           },
           "summary": {
             "type": "string",

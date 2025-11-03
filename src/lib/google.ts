@@ -5,6 +5,7 @@ import fs from 'fs';
 
 // Service Account Client (for server-to-server authentication)
 let serviceAccountAuth: any = null;
+let authClient: any = null; // Cache the authenticated client
 
 function getServiceAccountAuth() {
   if (serviceAccountAuth) return serviceAccountAuth;
@@ -64,12 +65,24 @@ function getServiceAccountAuth() {
 }
 
 // Get calendar client using Service Account
-function getServiceAccountCalendarClient() {
+async function getServiceAccountCalendarClient() {
   const serviceAuth = getServiceAccountAuth();
   if (!serviceAuth) {
     throw new Error('Service Account not configured');
   }
-  return google.calendar({ version: 'v3', auth: serviceAuth });
+  
+  // Pre-authenticate to get access token (improves first-call performance)
+  if (!authClient) {
+    try {
+      authClient = await serviceAuth.getClient();
+      console.log('🔐 Google Auth client initialized');
+    } catch (err) {
+      console.error('Failed to pre-authenticate:', err);
+      // Continue without pre-auth, let googleapis handle it
+    }
+  }
+  
+  return google.calendar({ version: 'v3', auth: authClient || serviceAuth });
 }
 
 export { 

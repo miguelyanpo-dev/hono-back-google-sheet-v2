@@ -4,12 +4,22 @@ import { config } from '../config/config';
 import { getRedlock } from '../lib/redis';
 import { parseToTimezone } from '../lib/timezone';
 
+// Helper to add timeout to promises
+function withTimeout<T>(promise: Promise<T>, timeoutMs: number, errorMsg: string): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<T>((_, reject) => 
+      setTimeout(() => reject(new Error(errorMsg)), timeoutMs)
+    )
+  ]);
+}
+
 const serviceCalendar = new Hono();
 
 // List calendars using Service Account
 serviceCalendar.get('/calendar/list', async (c) => {
   try {
-    const cal = getServiceAccountCalendarClient();
+    const cal = await getServiceAccountCalendarClient();
     const res = await cal.calendarList.list();
     return c.json({ 
       success: true,
@@ -29,7 +39,7 @@ serviceCalendar.get('/calendar/events', async (c) => {
   const timeMax = c.req.query('timeMax') || c.req.query('periodEnd');
   
   try {
-    const cal = getServiceAccountCalendarClient();
+    const cal = await getServiceAccountCalendarClient();
     const params: any = {
       calendarId,
       singleEvents: true,
@@ -56,7 +66,7 @@ serviceCalendar.get('/calendar/event/:eventId', async (c) => {
   const calendarId = c.req.query('calendarId') || config.calendar.defaultCalendarId;
   
   try {
-    const cal = getServiceAccountCalendarClient();
+    const cal = await getServiceAccountCalendarClient();
     const res = await cal.events.get({
       calendarId,
       eventId
@@ -125,7 +135,7 @@ serviceCalendar.post('/calendar/event', async (c) => {
 
     // inside lock: check availability and create event
     console.log(`⏱️  Time elapsed: ${Date.now() - startTime}ms - Getting calendar client`);
-    const cal = getServiceAccountCalendarClient();
+    const cal = await getServiceAccountCalendarClient();
 
     // Parse dates - if no timezone is specified, treat as local time in the configured timezone
     console.log(`⏱️  Time elapsed: ${Date.now() - startTime}ms - Parsing dates`);
@@ -146,13 +156,17 @@ serviceCalendar.post('/calendar/event', async (c) => {
 
     // check events overlapping the requested slot
     console.log(`⏱️  Time elapsed: ${Date.now() - startTime}ms - Checking availability`);
-    const eventsRes = await cal.events.list({
-      calendarId,
-      timeMin: startISO,
-      timeMax: endISO,
-      singleEvents: true,
-      orderBy: 'startTime'
-    });
+    const eventsRes = await withTimeout(
+      cal.events.list({
+        calendarId,
+        timeMin: startISO,
+        timeMax: endISO,
+        singleEvents: true,
+        orderBy: 'startTime'
+      }),
+      10000, // 10 second timeout
+      'Google Calendar API timeout while checking availability'
+    );
     console.log(`⏱️  Time elapsed: ${Date.now() - startTime}ms - Availability checked`);
 
     if ((eventsRes.data.items || []).length > 0) {
@@ -182,11 +196,15 @@ serviceCalendar.post('/calendar/event', async (c) => {
     if (body.location) eventBody.location = body.location;
     if (body.attendees) eventBody.attendees = body.attendees;
 
-    const created = await cal.events.insert({
-      calendarId,
-      requestBody: eventBody,
-      sendUpdates: 'all' // Send email notifications to attendees
-    });
+    const created = await withTimeout(
+      cal.events.insert({
+        calendarId,
+        requestBody: eventBody,
+        sendUpdates: 'all' // Send email notifications to attendees
+      }),
+      15000, // 15 second timeout
+      'Google Calendar API timeout while creating event'
+    );
     
     console.log(`✅ Event created successfully - Total time: ${Date.now() - startTime}ms`);
 
@@ -236,7 +254,7 @@ serviceCalendar.put('/calendar/event/:eventId', async (c) => {
   const calendarId = body.calendarId || config.calendar.defaultCalendarId;
   
   try {
-    const cal = getServiceAccountCalendarClient();
+    const cal = await getServiceAccountCalendarClient();
     
     // Get existing event
     const existing = await cal.events.get({
@@ -286,7 +304,7 @@ serviceCalendar.delete('/calendar/event/:eventId', async (c) => {
   const calendarId = c.req.query('calendarId') || config.calendar.defaultCalendarId;
   
   try {
-    const cal = getServiceAccountCalendarClient();
+    const cal = await getServiceAccountCalendarClient();
     await cal.events.delete({
       calendarId,
       eventId,
@@ -319,7 +337,7 @@ serviceCalendar.post('/calendar/check-availability', async (c) => {
   }
   
   try {
-    const cal = getServiceAccountCalendarClient();
+    const cal = await getServiceAccountCalendarClient();
     const endDateTime = body.endDateTime || 
       new Date(new Date(body.startDateTime).getTime() + config.calendar.appointmentDuration * 60000).toISOString();
     

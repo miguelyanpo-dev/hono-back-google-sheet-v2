@@ -99,9 +99,22 @@ serviceCalendar.post('/calendar/event', async (c) => {
   
   console.log(`⏱️  Time elapsed: ${Date.now() - startTime}ms - Parsing request body`);
   
-  // Simple body parsing - let Hono handle it naturally
-  const body = await c.req.json<Body>();
-  console.log(`⏱️  Time elapsed: ${Date.now() - startTime}ms - Body parsed successfully`);
+  // Workaround for Vercel/Hono body parsing issue
+  // Get raw request and parse manually
+  let body: Body;
+  try {
+    const rawRequest = c.req.raw;
+    console.log(`⏱️  Time elapsed: ${Date.now() - startTime}ms - Got raw request`);
+    
+    const text = await rawRequest.text();
+    console.log(`⏱️  Time elapsed: ${Date.now() - startTime}ms - Got text, length: ${text.length}`);
+    
+    body = JSON.parse(text) as Body;
+    console.log(`⏱️  Time elapsed: ${Date.now() - startTime}ms - Body parsed successfully`);
+  } catch (err: any) {
+    console.error(`❌ Body parsing failed:`, err.message);
+    return c.json({ error: 'invalid_request_body', details: err.message }, 400);
+  }
   
   // Validar campos requeridos
   if (!body.calendarId) {

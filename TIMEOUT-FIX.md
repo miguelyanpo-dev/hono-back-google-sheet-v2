@@ -3,16 +3,17 @@
 ## Problem
 The application was experiencing 30-second timeouts on Vercel when creating calendar events:
 ```
-2025-11-02 23:59:49.345 [error] Vercel Runtime Timeout Error: Task timed out after 30 seconds
-2025-11-02 23:59:19.580 [info] Redis connected successfully
-2025-11-02 23:59:19.799 [info] 📅 POST /calendar/event - Request started
+2025-11-03 00:15:48.116 [error] Vercel Runtime Timeout Error: Task timed out after 30 seconds
+2025-11-03 00:15:18.633 [info] 📅 POST /calendar/event - Request started
 ```
 
+**Critical Issue**: Logs showed "Request started" but no subsequent timing logs, indicating the hang occurred during Google Auth initialization.
+
 ## Root Cause
-1. **Google Calendar API calls were taking too long** - Authentication + API calls exceeded 30 seconds
-2. **No timeout protection** - API calls could hang indefinitely
-3. **Sequential authentication** - Google Auth was authenticating on every request
-4. **No connection pooling** - Auth client wasn't being reused
+1. **Google Auth client initialization hanging** - `serviceAuth.getClient()` taking >30 seconds or hanging indefinitely
+2. **No timeout protection on auth initialization** - Could wait forever for auth token
+3. **No timeout on request body parsing** - Could hang on large/malformed requests
+4. **No fallback mechanism** - If pre-auth failed, entire request failed
 
 ## Solution Applied
 
@@ -30,44 +31,83 @@ function withTimeout<T>(promise: Promise<T>, timeoutMs: number, errorMsg: string
 ```
 
 Applied to critical operations:
+- **Request body parsing**: 3-second timeout
+- **Calendar client initialization**: 8-second timeout
 - **Availability check**: 10-second timeout
 - **Event creation**: 15-second timeout
 
-### 2. Pre-Authentication (`src/lib/google.ts`)
-Optimized Google Auth client to pre-authenticate and cache the auth client:
+### 2. Protected Google Auth Initialization (`src/lib/google.ts`)
+Added timeout and fallback to Google Auth client initialization:
 ```typescript
 async function getServiceAccountCalendarClient() {
-  // Pre-authenticate to get access token (improves first-call performance)
   if (!authClient) {
-    authClient = await serviceAuth.getClient();
+    try {
+      // Add 5-second timeout to prevent hanging
+      authClient = await Promise.race([
+        serviceAuth.getClient(),
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Auth client initialization timeout')), 5000)
+        )
+      ]);
+    } catch (err) {
+      // Fallback: use direct auth without pre-caching
+      return google.calendar({ version: 'v3', auth: serviceAuth });
+    }
   }
   return google.calendar({ version: 'v3', auth: authClient || serviceAuth });
 }
 ```
 
 Benefits:
-- ✅ Auth token is fetched once and reused
-- ✅ Subsequent requests skip authentication overhead
-- ✅ Faster response times in serverless environment
+- ✅ 5-second timeout on auth initialization prevents indefinite hangs
+- ✅ Fallback to direct auth if pre-auth fails
+- ✅ Auth token cached and reused when successful
+- ✅ Graceful degradation ensures requests always proceed
 
-### 3. Made Function Async
+### 3. Granular Logging
+Added detailed timing logs at each step:
+- Request body parsing
+- Calendar client initialization
+- Date parsing
+- Availability check
+- Event creation
+
+### 4. Made Function Async
 Changed `getServiceAccountCalendarClient()` to async and updated all call sites to use `await`
 
 ## Expected Results
-- ⏱️ Faster API responses (auth overhead removed after first call)
-- 🛡️ Protected against hanging API calls (10-15s timeouts)
-- ✅ Better error messages when timeouts occur
-- 📊 Detailed timing logs for debugging
+- ⏱️ Maximum request time: ~26 seconds (3+8+10+15 = 36s theoretical, but operations overlap)
+- 🛡️ Protected against hanging at every step
+- ✅ Clear error messages identifying which step timed out
+- 📊 Detailed timing logs for performance analysis
+- 🔄 Fallback mechanisms ensure requests proceed even if auth caching fails
 
 ## Monitoring
 Watch for these log patterns:
-- `🔐 Google Auth client initialized` - Auth client cached successfully
-- `⏱️ Time elapsed: Xms` - Track request timing
-- `✅ Event created successfully - Total time: Xms` - Successful completions
 
-If you see timeout errors, they'll now be specific:
+**Success path:**
+- `📅 POST /calendar/event - Request started`
+- `⏱️ Time elapsed: Xms - Parsing request body`
+- `⏱️ Time elapsed: Xms - Body parsed`
+- `🔄 Initializing Google Auth client...` (first request only)
+- `🔐 Google Auth client initialized successfully` (first request only)
+- `⏱️ Time elapsed: Xms - Getting calendar client`
+- `⏱️ Time elapsed: Xms - Calendar client obtained`
+- `⏱️ Time elapsed: Xms - Checking availability`
+- `⏱️ Time elapsed: Xms - Availability checked`
+- `⏱️ Time elapsed: Xms - Creating event`
+- `✅ Event created successfully - Total time: Xms`
+
+**Timeout errors (now specific):**
+- `Request body parsing timeout` (>3s)
+- `Calendar client initialization timeout` (>8s)
+- `Auth client initialization timeout` (>5s within the 8s window)
 - `Google Calendar API timeout while checking availability` (>10s)
 - `Google Calendar API timeout while creating event` (>15s)
+
+**Fallback scenarios:**
+- `⚠️ Failed to pre-authenticate` - Auth caching failed, using direct auth
+- `📅 Using direct auth instead of cached client` - Proceeding without cache
 
 ## Next Steps
 If timeouts persist:

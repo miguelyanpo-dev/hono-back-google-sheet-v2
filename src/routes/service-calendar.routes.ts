@@ -97,7 +97,13 @@ serviceCalendar.post('/calendar/event', async (c) => {
     attendees?: Array<{ email: string }>;
   };
   
-  const body = await c.req.json<Body>();
+  console.log(`⏱️  Time elapsed: ${Date.now() - startTime}ms - Parsing request body`);
+  const body = await withTimeout(
+    c.req.json<Body>(),
+    3000,
+    'Request body parsing timeout'
+  );
+  console.log(`⏱️  Time elapsed: ${Date.now() - startTime}ms - Body parsed`);
   
   // Validar campos requeridos
   if (!body.calendarId) {
@@ -135,7 +141,12 @@ serviceCalendar.post('/calendar/event', async (c) => {
 
     // inside lock: check availability and create event
     console.log(`⏱️  Time elapsed: ${Date.now() - startTime}ms - Getting calendar client`);
-    const cal = await getServiceAccountCalendarClient();
+    const cal = await withTimeout(
+      getServiceAccountCalendarClient(),
+      8000,
+      'Calendar client initialization timeout'
+    );
+    console.log(`⏱️  Time elapsed: ${Date.now() - startTime}ms - Calendar client obtained`);
 
     // Parse dates - if no timezone is specified, treat as local time in the configured timezone
     console.log(`⏱️  Time elapsed: ${Date.now() - startTime}ms - Parsing dates`);

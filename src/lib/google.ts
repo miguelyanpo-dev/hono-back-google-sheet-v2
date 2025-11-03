@@ -74,11 +74,21 @@ async function getServiceAccountCalendarClient() {
   // Pre-authenticate to get access token (improves first-call performance)
   if (!authClient) {
     try {
-      authClient = await serviceAuth.getClient();
-      console.log('🔐 Google Auth client initialized');
+      console.log('🔄 Initializing Google Auth client...');
+      // Add timeout to prevent hanging
+      authClient = await Promise.race([
+        serviceAuth.getClient(),
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Auth client initialization timeout')), 5000)
+        )
+      ]);
+      console.log('🔐 Google Auth client initialized successfully');
     } catch (err) {
-      console.error('Failed to pre-authenticate:', err);
+      console.error('⚠️ Failed to pre-authenticate:', err);
       // Continue without pre-auth, let googleapis handle it
+      // Return calendar client with direct auth (no pre-auth)
+      console.log('📅 Using direct auth instead of cached client');
+      return google.calendar({ version: 'v3', auth: serviceAuth });
     }
   }
   

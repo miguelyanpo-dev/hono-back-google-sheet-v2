@@ -23,6 +23,8 @@ export function rateLimit(options: Partial<RateLimitOptions> = {}) {
   const redis = getRedis();
 
   return async (c: Context, next: Next) => {
+    const rateLimitStart = Date.now();
+    
     // Si Redis no está disponible, permitir la petición sin rate limiting
     if (!redis) {
       console.warn('Rate limiting disabled: Redis not available');
@@ -43,7 +45,15 @@ export function rateLimit(options: Partial<RateLimitOptions> = {}) {
     try {
       // Asegurar que Redis está conectado antes de ejecutar comandos
       if (redis.status !== 'ready') {
-        await redis.connect();
+        console.log(`🔄 Redis not ready (status: ${redis.status}), connecting...`);
+        // Add timeout to Redis connection to prevent hanging
+        await Promise.race([
+          redis.connect(),
+          new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Redis connect timeout')), 3000)
+          )
+        ]);
+        console.log(`✅ Redis connected in ${Date.now() - rateLimitStart}ms`);
       }
       
       // Usar Redis para contar peticiones
@@ -87,10 +97,12 @@ export function rateLimit(options: Partial<RateLimitOptions> = {}) {
         }, 429);
       }
       
+      console.log(`⏱️  Rate limit check passed in ${Date.now() - rateLimitStart}ms, proceeding to handler`);
       await next();
       
     } catch (error) {
       console.error('Rate limit error:', error);
+      console.log(`⚠️  Rate limit failed after ${Date.now() - rateLimitStart}ms, proceeding anyway`);
       // En caso de error con Redis, permitir la petición sin rate limiting
       // Esto evita que fallos de Redis bloqueen la aplicación
       await next();

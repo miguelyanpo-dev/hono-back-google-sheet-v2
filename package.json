@@ -1,6 +1,6 @@
 {
-  "name": "hono-crud-api",
-  "version": "0.1.0",
+  "name": "auth0-management-api",
+  "version": "1.0.0",
   "private": true,
   "scripts": {
     "dev": "tsx watch src/index.ts",
@@ -11,8 +11,8 @@
   },
   "dependencies": {
     "@hono/node-server": "1.13.0",
-    "@hono/swagger-ui": "0.5.2",
-    "@hono/zod-openapi": "1.1.4",
+    "@hono/swagger-ui": "^0.5.2",
+    "@hono/zod-openapi": "^1.1.5",
     "dotenv": "17.2.3",
     "hono": "4.6.0",
     "zod": "^4.1.12"

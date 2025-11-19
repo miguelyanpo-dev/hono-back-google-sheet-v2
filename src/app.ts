@@ -461,6 +461,10 @@ apiV1.get('/openapi.json', (c) => {
     },
     servers: [
       {
+        url: `${config.productionUrl}/api/v1`,
+        description: 'Production server',
+      },
+      {
         url: `http://localhost:${config.port}/api/v1`,
         description: 'Development server',
       },

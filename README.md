@@ -36,6 +36,7 @@ cp .env.example .env
 ```env
 PORT=3001
 NODE_ENV=development
+PRODUCTION_URL=https://back-auth-0-yanpo.vercel.app
 CORS_ORIGIN=http://localhost:3000,http://localhost:5173
 
 # Auth0 Configuration

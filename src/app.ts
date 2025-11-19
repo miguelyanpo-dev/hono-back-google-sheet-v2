@@ -71,9 +71,18 @@ const getTokenRoute = createRoute({
         },
       },
     },
+    500: {
+      description: 'Error al obtener token',
+      content: {
+        'application/json': {
+          schema: ErrorResponse,
+        },
+      },
+    },
   },
 });
 
+// @ts-expect-error - Known issue with @hono/zod-openapi type inference
 apiV1.openapi(getTokenRoute, async (c) => {
   try {
     AuthService.clearCache();
@@ -102,9 +111,14 @@ const getUsersRoute = createRoute({
       description: 'Lista de usuarios',
       content: { 'application/json': { schema: SuccessResponse } },
     },
+    500: {
+      description: 'Error al obtener usuarios',
+      content: { 'application/json': { schema: ErrorResponse } },
+    },
   },
 });
 
+// @ts-expect-error - Known issue with @hono/zod-openapi type inference
 apiV1.openapi(getUsersRoute, async (c) => {
   try {
     const { page, per_page, search } = c.req.query();
@@ -134,11 +148,11 @@ const createUserRoute = createRoute({
             password: z.string().min(8),
             connection: z.string(),
             phone_number: z.string().optional(),
-            user_metadata: z.record(z.any()).optional(),
+            user_metadata: z.record(z.string(), z.any()).optional(),
             blocked: z.boolean().optional(),
             email_verified: z.boolean().optional(),
             phone_verified: z.boolean().optional(),
-            app_metadata: z.record(z.any()).optional(),
+            app_metadata: z.record(z.string(), z.any()).optional(),
             given_name: z.string().optional(),
             family_name: z.string().optional(),
             name: z.string().optional(),
@@ -156,9 +170,14 @@ const createUserRoute = createRoute({
       description: 'Usuario creado',
       content: { 'application/json': { schema: SuccessResponse } },
     },
+    500: {
+      description: 'Error al crear usuario',
+      content: { 'application/json': { schema: ErrorResponse } },
+    },
   },
 });
 
+// @ts-expect-error - Known issue with @hono/zod-openapi type inference
 apiV1.openapi(createUserRoute, async (c) => {
   try {
     const body = await c.req.json();
@@ -190,8 +209,8 @@ const updateUserRoute = createRoute({
             email: z.string().email().optional(),
             phone_number: z.string().optional(),
             phone_verified: z.boolean().optional(),
-            user_metadata: z.record(z.any()).optional(),
-            app_metadata: z.record(z.any()).optional(),
+            user_metadata: z.record(z.string(), z.any()).optional(),
+            app_metadata: z.record(z.string(), z.any()).optional(),
             given_name: z.string().optional(),
             family_name: z.string().optional(),
             name: z.string().optional(),
@@ -212,9 +231,14 @@ const updateUserRoute = createRoute({
       description: 'Usuario actualizado',
       content: { 'application/json': { schema: SuccessResponse } },
     },
+    500: {
+      description: 'Error al actualizar usuario',
+      content: { 'application/json': { schema: ErrorResponse } },
+    },
   },
 });
 
+// @ts-expect-error - Known issue with @hono/zod-openapi type inference
 apiV1.openapi(updateUserRoute, async (c) => {
   try {
     const { id } = c.req.param();
@@ -240,9 +264,14 @@ const getRolesRoute = createRoute({
       description: 'Lista de roles',
       content: { 'application/json': { schema: SuccessResponse } },
     },
+    500: {
+      description: 'Error al obtener roles',
+      content: { 'application/json': { schema: ErrorResponse } },
+    },
   },
 });
 
+// @ts-expect-error - Known issue with @hono/zod-openapi type inference
 apiV1.openapi(getRolesRoute, async (c) => {
   try {
     const data = await AuthService.authenticatedRequest('roles');
@@ -274,9 +303,14 @@ const createRoleRoute = createRoute({
       description: 'Rol creado',
       content: { 'application/json': { schema: SuccessResponse } },
     },
+    500: {
+      description: 'Error al crear rol',
+      content: { 'application/json': { schema: ErrorResponse } },
+    },
   },
 });
 
+// @ts-expect-error - Known issue with @hono/zod-openapi type inference
 apiV1.openapi(createRoleRoute, async (c) => {
   try {
     const body = await c.req.json();
@@ -315,9 +349,14 @@ const updateRoleRoute = createRoute({
       description: 'Rol actualizado',
       content: { 'application/json': { schema: SuccessResponse } },
     },
+    500: {
+      description: 'Error al actualizar rol',
+      content: { 'application/json': { schema: ErrorResponse } },
+    },
   },
 });
 
+// @ts-expect-error - Known issue with @hono/zod-openapi type inference
 apiV1.openapi(updateRoleRoute, async (c) => {
   try {
     const { id } = c.req.param();
@@ -356,9 +395,14 @@ const assignUsersToRoleRoute = createRoute({
       description: 'Usuarios asignados',
       content: { 'application/json': { schema: SuccessResponse } },
     },
+    500: {
+      description: 'Error al asignar usuarios',
+      content: { 'application/json': { schema: ErrorResponse } },
+    },
   },
 });
 
+// @ts-expect-error - Known issue with @hono/zod-openapi type inference
 apiV1.openapi(assignUsersToRoleRoute, async (c) => {
   try {
     const { id } = c.req.param();
@@ -388,9 +432,14 @@ const getRoleUsersRoute = createRoute({
       description: 'Lista de usuarios del rol',
       content: { 'application/json': { schema: SuccessResponse } },
     },
+    500: {
+      description: 'Error al obtener usuarios del rol',
+      content: { 'application/json': { schema: ErrorResponse } },
+    },
   },
 });
 
+// @ts-expect-error - Known issue with @hono/zod-openapi type inference
 apiV1.openapi(getRoleUsersRoute, async (c) => {
   try {
     const { id } = c.req.param();

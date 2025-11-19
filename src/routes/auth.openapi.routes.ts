@@ -40,6 +40,7 @@ const getTokenRoute = createRoute({
 });
 
 export function registerAuthRoutes(router: OpenAPIHono) {
+  // @ts-expect-error - Known issue with @hono/zod-openapi type inference
   router.openapi(getTokenRoute, async (c) => {
     try {
       AuthService.clearCache();

@@ -10,7 +10,7 @@ if (process.env.NODE_ENV !== 'production') {
     fetch: app.fetch,
     port: config.port,
   });
-  console.log(`Server running at http://localhost:${config.port}`);
+  console.log(`El servidor está corriendo en http://localhost:${config.port}`);
 }
 
 // For Vercel (@vercel/node expects CommonJS export)

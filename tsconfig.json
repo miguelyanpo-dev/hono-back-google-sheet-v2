@@ -12,5 +12,5 @@
     "moduleResolution": "node"
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "src/routes/service-calendar.openapi.routes.ts", "src/schemas"]
+  "exclude": ["node_modules", "dist", "src/schemas"]
 }

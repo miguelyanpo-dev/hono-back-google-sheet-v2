@@ -11,6 +11,8 @@ API REST básica construida con [Hono](https://hono.dev/) - un framework web ult
 - ✅ Logging de requests
 - ✅ Manejo de errores
 - ✅ Desplegable en Vercel
+- ✅ **Documentación Swagger/OpenAPI integrada**
+- ✅ Validación de datos con Zod
 
 ## 📦 Instalación
 
@@ -43,12 +45,26 @@ npm start
 
 ## 📡 Endpoints Disponibles
 
+### 📚 Documentación Swagger
+
+Accede a la documentación interactiva de la API:
+
+```
+http://localhost:3001/api/v1/doc
+```
+
+La documentación Swagger te permite:
+- Ver todos los endpoints disponibles
+- Probar las APIs directamente desde el navegador
+- Ver los esquemas de request/response
+- Validar datos con Zod schemas
+
 ### Health Check
 ```bash
 GET /
 ```
 
-### Items CRUD
+### Items CRUD (Rutas estándar)
 
 | Método | Endpoint | Descripción |
 |--------|----------|-------------|
@@ -58,11 +74,21 @@ GET /
 | `PUT` | `/api/items/:id` | Actualizar item |
 | `DELETE` | `/api/items/:id` | Eliminar item |
 
+### Items CRUD (Rutas OpenAPI con validación)
+
+| Método | Endpoint | Descripción |
+|--------|----------|-------------|
+| `GET` | `/api/v1/items` | Listar todos los items |
+| `GET` | `/api/v1/items/:id` | Obtener un item por ID |
+| `POST` | `/api/v1/items` | Crear nuevo item (con validación Zod) |
+| `PUT` | `/api/v1/items/:id` | Actualizar item (con validación Zod) |
+| `DELETE` | `/api/v1/items/:id` | Eliminar item |
+
 ### Ejemplos de uso
 
 **Crear item:**
 ```bash
-curl -X POST http://localhost:3001/api/items \
+curl -X POST http://localhost:3001/api/v1/items \
   -H "Content-Type: application/json" \
   -d '{"name": "Mi Item", "description": "Descripción del item"}'
 ```
@@ -116,6 +142,9 @@ vercel --prod
 - [Hono](https://hono.dev/) - Framework web
 - [TypeScript](https://www.typescriptlang.org/) - Lenguaje
 - [tsx](https://github.com/esbuild-kit/tsx) - TypeScript executor
+- [@hono/zod-openapi](https://github.com/honojs/middleware/tree/main/packages/zod-openapi) - OpenAPI con Zod
+- [@hono/swagger-ui](https://github.com/honojs/middleware/tree/main/packages/swagger-ui) - Interfaz Swagger UI
+- [Zod](https://zod.dev/) - Validación de esquemas TypeScript
 
 ## 📝 Notas
 

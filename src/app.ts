@@ -1,8 +1,10 @@
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
+import { swaggerUI } from '@hono/swagger-ui';
 import { logger } from './middlewares/logger';
 import { config } from './config/config';
 import itemsRouter from './routes/items.routes';
+import itemsOpenAPIRouter from './routes/items.openapi.routes';
 
 const app = new Hono();
 
@@ -31,6 +33,30 @@ app.get('/', (c) => {
 
 // Mount routes
 app.route('/api/items', itemsRouter);
+
+// Mount OpenAPI routes
+app.route('/api/v1/items', itemsOpenAPIRouter);
+
+// OpenAPI documentation endpoint
+app.get('/api/v1/doc', swaggerUI({ url: '/api/v1/openapi.json' }));
+
+// OpenAPI JSON spec
+app.get('/api/v1/openapi.json', (c) => {
+  return c.json(itemsOpenAPIRouter.getOpenAPIDocument({
+    openapi: '3.0.0',
+    info: {
+      title: 'Hono CRUD API',
+      version: '0.1.0',
+      description: 'API REST básica construida con Hono - un framework web ultrarrápido y ligero para TypeScript',
+    },
+    servers: [
+      {
+        url: config.env === 'production' ? 'https://your-domain.vercel.app' : `http://localhost:${config.port}`,
+        description: config.env === 'production' ? 'Production server' : 'Development server',
+      },
+    ],
+  }));
+});
 
 // 404 handler
 app.notFound((c) => {

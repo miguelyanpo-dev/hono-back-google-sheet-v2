@@ -14,9 +14,9 @@ const apiV1 = new OpenAPIHono();
 
 // CORS middleware
 app.use('*', cors({
-  origin: config.cors.origins,
+  origin: '*',
   allowHeaders: ['Content-Type', 'Authorization'],
-  allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowMethods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
   maxAge: 600,
   credentials: true,
 }));

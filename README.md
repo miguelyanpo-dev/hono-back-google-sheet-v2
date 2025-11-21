@@ -98,6 +98,7 @@ Estas rutas incluyen validación automática con Zod y están documentadas en Sw
 - `GET /api/v1/users` - Listar usuarios
 - `POST /api/v1/users` - Crear usuario
 - `PATCH /api/v1/users/:id` - Actualizar usuario
+- `GET /api/v1/users/:id/roles` - Obtener roles de un usuario
 
 **Roles:**
 - `GET /api/v1/roles` - Listar roles
@@ -121,6 +122,7 @@ Estas rutas incluyen validación automática con Zod y están documentadas en Sw
 | `GET` | `/api/users` | Listar usuarios |
 | `POST` | `/api/users` | Crear usuario |
 | `PATCH` | `/api/users/:id` | Actualizar usuario |
+| `GET` | `/api/users/:id/roles` | Obtener roles de un usuario |
 
 ### Roles
 
@@ -172,6 +174,11 @@ curl -X POST http://localhost:3001/api/roles/rol_123/users \
   -d '{"users": ["auth0|user1", "auth0|user2"]}'
 ```
 
+**Obtener roles de un usuario:**
+```bash
+curl http://localhost:3001/api/users/auth0|123456/roles
+```
+
 **Para más ejemplos detallados, consulta:**
 - `API_DOCUMENTATION.md` - Documentación completa de la API
 - `CURL_EXAMPLES.md` - Ejemplos de uso con cURL y PowerShell
@@ -192,7 +199,8 @@ src/
 │   ├── users/
 │   │   ├── get_users.ts      # Listar usuarios
 │   │   ├── post_create_user.ts # Crear usuario
-│   │   └── patch_update_user.ts # Actualizar usuario
+│   │   ├── patch_update_user.ts # Actualizar usuario
+│   │   └── get_user_roles.ts # Obtener roles de usuario
 │   └── roles/
 │       ├── get_roles.ts      # Listar roles
 │       ├── post_create_role.ts # Crear rol

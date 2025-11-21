@@ -253,6 +253,43 @@ apiV1.openapi(updateUserRoute, async (c) => {
   }
 });
 
+const getUserRolesRoute = createRoute({
+  method: 'get',
+  path: '/users/{id}/roles',
+  tags: ['Usuarios'],
+  summary: 'Obtener roles de un usuario',
+  request: {
+    params: z.object({
+      id: z.string(),
+    }),
+  },
+  responses: {
+    200: {
+      description: 'Lista de roles del usuario',
+      content: { 'application/json': { schema: SuccessResponse } },
+    },
+    400: {
+      description: 'ID de usuario inválido',
+      content: { 'application/json': { schema: ErrorResponse } },
+    },
+    500: {
+      description: 'Error al obtener roles del usuario',
+      content: { 'application/json': { schema: ErrorResponse } },
+    },
+  },
+});
+
+// @ts-expect-error - Known issue with @hono/zod-openapi type inference
+apiV1.openapi(getUserRolesRoute, async (c) => {
+  try {
+    const { id } = c.req.param();
+    const data = await AuthService.authenticatedRequest(`users/${id}/roles`);
+    return c.json({ success: true, data });
+  } catch (error) {
+    return c.json({ success: false, error: 'Error al obtener roles del usuario', message: String(error) }, 500);
+  }
+});
+
 // ==================== ROLES ROUTES ====================
 const getRolesRoute = createRoute({
   method: 'get',
@@ -593,6 +630,72 @@ apiV1.get('/openapi.json', (c) => {
                     properties: {
                       success: { type: 'boolean' },
                       data: { type: 'object' },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      '/users/{id}/roles': {
+        get: {
+          tags: ['Usuarios'],
+          summary: 'Obtener roles de un usuario',
+          description: 'Obtiene la lista de roles asignados a un usuario específico',
+          parameters: [
+            { name: 'id', in: 'path', required: true, schema: { type: 'string' }, description: 'ID del usuario' },
+          ],
+          responses: {
+            200: {
+              description: 'Lista de roles del usuario',
+              content: {
+                'application/json': {
+                  schema: {
+                    type: 'object',
+                    properties: {
+                      success: { type: 'boolean', example: true },
+                      data: {
+                        type: 'array',
+                        items: {
+                          type: 'object',
+                          properties: {
+                            id: { type: 'string', example: 'rol_0VCDtsqSwgR8jUQR' },
+                            name: { type: 'string', example: 'Módulo Cartera - CREAR' },
+                            description: { type: 'string', example: 'El usuario puede crear en el módulo de Cartera' },
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+            400: {
+              description: 'ID de usuario inválido',
+              content: {
+                'application/json': {
+                  schema: {
+                    type: 'object',
+                    properties: {
+                      success: { type: 'boolean', example: false },
+                      error: { type: 'string' },
+                      message: { type: 'string' },
+                    },
+                  },
+                },
+              },
+            },
+            500: {
+              description: 'Error al obtener roles del usuario',
+              content: {
+                'application/json': {
+                  schema: {
+                    type: 'object',
+                    properties: {
+                      success: { type: 'boolean', example: false },
+                      error: { type: 'string' },
+                      message: { type: 'string' },
                     },
                   },
                 },

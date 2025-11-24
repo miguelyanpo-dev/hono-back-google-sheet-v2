@@ -99,6 +99,8 @@ Estas rutas incluyen validación automática con Zod y están documentadas en Sw
 - `POST /api/v1/users` - Crear usuario
 - `PATCH /api/v1/users/:id` - Actualizar usuario
 - `GET /api/v1/users/:id/roles` - Obtener roles de un usuario
+- `POST /api/v1/users/:id/roles` - Asignar roles a un usuario
+- `DELETE /api/v1/users/:id/roles` - Remover roles de un usuario
 
 **Roles:**
 - `GET /api/v1/roles` - Listar roles
@@ -123,6 +125,8 @@ Estas rutas incluyen validación automática con Zod y están documentadas en Sw
 | `POST` | `/api/users` | Crear usuario |
 | `PATCH` | `/api/users/:id` | Actualizar usuario |
 | `GET` | `/api/users/:id/roles` | Obtener roles de un usuario |
+| `POST` | `/api/users/:id/roles` | Asignar roles a un usuario |
+| `DELETE` | `/api/users/:id/roles` | Remover roles de un usuario |
 
 ### Roles
 
@@ -179,6 +183,20 @@ curl -X POST http://localhost:3001/api/roles/rol_123/users \
 curl http://localhost:3001/api/users/auth0|123456/roles
 ```
 
+**Asignar roles a un usuario:**
+```bash
+curl -X POST http://localhost:3001/api/users/auth0|123456/roles \
+  -H "Content-Type: application/json" \
+  -d '{"roles": ["rol_0VCDtsqSwgR8jUQR", "rol_xWx6xr3Dsa3WLPNE"]}'
+```
+
+**Remover roles de un usuario:**
+```bash
+curl -X DELETE http://localhost:3001/api/users/auth0|123456/roles \
+  -H "Content-Type: application/json" \
+  -d '{"roles": ["rol_0VCDtsqSwgR8jUQR"]}'
+```
+
 **Para más ejemplos detallados, consulta:**
 - `API_DOCUMENTATION.md` - Documentación completa de la API
 - `CURL_EXAMPLES.md` - Ejemplos de uso con cURL y PowerShell
@@ -200,7 +218,9 @@ src/
 │   │   ├── get_users.ts      # Listar usuarios
 │   │   ├── post_create_user.ts # Crear usuario
 │   │   ├── patch_update_user.ts # Actualizar usuario
-│   │   └── get_user_roles.ts # Obtener roles de usuario
+│   │   ├── get_user_roles.ts # Obtener roles de usuario
+│   │   ├── post_assign_roles_to_user.ts # Asignar roles a usuario
+│   │   └── delete_remove_roles_from_user.ts # Remover roles de usuario
 │   └── roles/
 │       ├── get_roles.ts      # Listar roles
 │       ├── post_create_role.ts # Crear rol

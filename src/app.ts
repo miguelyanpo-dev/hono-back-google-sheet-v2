@@ -290,6 +290,156 @@ apiV1.openapi(getUserRolesRoute, async (c) => {
   }
 });
 
+const assignRolesToUserRoute = createRoute({
+  method: 'post',
+  path: '/users/{id}/roles',
+  tags: ['Usuarios'],
+  summary: 'Asignar roles a un usuario',
+  request: {
+    params: z.object({
+      id: z.string(),
+    }),
+    body: {
+      content: {
+        'application/json': {
+          schema: z.object({
+            roles: z.array(z.string()),
+          }),
+        },
+      },
+    },
+  },
+  responses: {
+    200: {
+      description: 'Roles asignados al usuario',
+      content: { 'application/json': { schema: SuccessResponse } },
+    },
+    400: {
+      description: 'Datos inválidos',
+      content: { 'application/json': { schema: ErrorResponse } },
+    },
+    500: {
+      description: 'Error al asignar roles al usuario',
+      content: { 'application/json': { schema: ErrorResponse } },
+    },
+  },
+});
+
+// @ts-expect-error - Known issue with @hono/zod-openapi type inference
+apiV1.openapi(assignRolesToUserRoute, async (c) => {
+  try {
+    const { id } = c.req.param();
+    const { roles } = await c.req.json();
+    
+    // Obtener token
+    const token = await AuthService.getAccessToken();
+    const url = `${config.auth0.urlBase}${config.auth0.pathApi}users/${id}/roles`;
+    
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ roles }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Error en petición: ${response.status} - ${errorText}`);
+    }
+
+    // Auth0 devuelve 204 No Content cuando la asignación es exitosa
+    if (response.status === 204) {
+      return c.json({ 
+        success: true, 
+        message: 'Roles asignados exitosamente',
+        data: { roles } 
+      });
+    }
+
+    const data = await response.json();
+    return c.json({ success: true, data });
+  } catch (error) {
+    return c.json({ success: false, error: 'Error al asignar roles al usuario', message: String(error) }, 500);
+  }
+});
+
+const removeRolesFromUserRoute = createRoute({
+  method: 'delete',
+  path: '/users/{id}/roles',
+  tags: ['Usuarios'],
+  summary: 'Remover roles de un usuario',
+  request: {
+    params: z.object({
+      id: z.string(),
+    }),
+    body: {
+      content: {
+        'application/json': {
+          schema: z.object({
+            roles: z.array(z.string()),
+          }),
+        },
+      },
+    },
+  },
+  responses: {
+    200: {
+      description: 'Roles removidos del usuario',
+      content: { 'application/json': { schema: SuccessResponse } },
+    },
+    400: {
+      description: 'Datos inválidos',
+      content: { 'application/json': { schema: ErrorResponse } },
+    },
+    500: {
+      description: 'Error al remover roles del usuario',
+      content: { 'application/json': { schema: ErrorResponse } },
+    },
+  },
+});
+
+// @ts-expect-error - Known issue with @hono/zod-openapi type inference
+apiV1.openapi(removeRolesFromUserRoute, async (c) => {
+  try {
+    const { id } = c.req.param();
+    const { roles } = await c.req.json();
+    
+    // Obtener token
+    const token = await AuthService.getAccessToken();
+    const url = `${config.auth0.urlBase}${config.auth0.pathApi}users/${id}/roles`;
+    
+    const response = await fetch(url, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ roles }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Error en petición: ${response.status} - ${errorText}`);
+    }
+
+    // Auth0 devuelve 204 No Content cuando la eliminación es exitosa
+    if (response.status === 204) {
+      return c.json({ 
+        success: true, 
+        message: 'Roles removidos exitosamente',
+        data: { roles } 
+      });
+    }
+
+    const data = await response.json();
+    return c.json({ success: true, data });
+  } catch (error) {
+    return c.json({ success: false, error: 'Error al remover roles del usuario', message: String(error) }, 500);
+  }
+});
+
 // ==================== ROLES ROUTES ====================
 const getRolesRoute = createRoute({
   method: 'get',
@@ -688,6 +838,151 @@ apiV1.get('/openapi.json', (c) => {
             },
             500: {
               description: 'Error al obtener roles del usuario',
+              content: {
+                'application/json': {
+                  schema: {
+                    type: 'object',
+                    properties: {
+                      success: { type: 'boolean', example: false },
+                      error: { type: 'string' },
+                      message: { type: 'string' },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        post: {
+          tags: ['Usuarios'],
+          summary: 'Asignar roles a un usuario',
+          description: 'Asigna uno o más roles a un usuario específico',
+          parameters: [
+            { name: 'id', in: 'path', required: true, schema: { type: 'string' }, description: 'ID del usuario' },
+          ],
+          requestBody: {
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  required: ['roles'],
+                  properties: {
+                    roles: {
+                      type: 'array',
+                      items: { type: 'string' },
+                      example: ['rol_0VCDtsqSwgR8jUQR', 'rol_xWx6xr3Dsa3WLPNE'],
+                      description: 'Array de IDs de roles a asignar al usuario',
+                    },
+                  },
+                },
+              },
+            },
+          },
+          responses: {
+            200: {
+              description: 'Roles asignados exitosamente',
+              content: {
+                'application/json': {
+                  schema: {
+                    type: 'object',
+                    properties: {
+                      success: { type: 'boolean', example: true },
+                      data: { type: 'object' },
+                    },
+                  },
+                },
+              },
+            },
+            400: {
+              description: 'Datos inválidos',
+              content: {
+                'application/json': {
+                  schema: {
+                    type: 'object',
+                    properties: {
+                      success: { type: 'boolean', example: false },
+                      error: { type: 'string' },
+                      message: { type: 'string' },
+                    },
+                  },
+                },
+              },
+            },
+            500: {
+              description: 'Error al asignar roles',
+              content: {
+                'application/json': {
+                  schema: {
+                    type: 'object',
+                    properties: {
+                      success: { type: 'boolean', example: false },
+                      error: { type: 'string' },
+                      message: { type: 'string' },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        delete: {
+          tags: ['Usuarios'],
+          summary: 'Remover roles de un usuario',
+          description: 'Remueve uno o más roles de un usuario específico',
+          parameters: [
+            { name: 'id', in: 'path', required: true, schema: { type: 'string' }, description: 'ID del usuario' },
+          ],
+          requestBody: {
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  required: ['roles'],
+                  properties: {
+                    roles: {
+                      type: 'array',
+                      items: { type: 'string' },
+                      example: ['rol_0VCDtsqSwgR8jUQR', 'rol_xWx6xr3Dsa3WLPNE'],
+                      description: 'Array de IDs de roles a remover del usuario',
+                    },
+                  },
+                },
+              },
+            },
+          },
+          responses: {
+            200: {
+              description: 'Roles removidos exitosamente',
+              content: {
+                'application/json': {
+                  schema: {
+                    type: 'object',
+                    properties: {
+                      success: { type: 'boolean', example: true },
+                      message: { type: 'string', example: 'Roles removidos exitosamente' },
+                      data: { type: 'object' },
+                    },
+                  },
+                },
+              },
+            },
+            400: {
+              description: 'Datos inválidos',
+              content: {
+                'application/json': {
+                  schema: {
+                    type: 'object',
+                    properties: {
+                      success: { type: 'boolean', example: false },
+                      error: { type: 'string' },
+                      message: { type: 'string' },
+                    },
+                  },
+                },
+              },
+            },
+            500: {
+              description: 'Error al remover roles',
               content: {
                 'application/json': {
                   schema: {

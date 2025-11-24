@@ -1,5 +1,5 @@
 {
-  "name": "auth0-management-api",
+  "name": "aliado-api-proxy",
   "version": "1.0.0",
   "private": true,
   "scripts": {

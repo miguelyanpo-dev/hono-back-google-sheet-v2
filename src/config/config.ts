@@ -1,17 +1,12 @@
 export const config = {
   port: Number(process.env.PORT || 3001),
   env: process.env.NODE_ENV || 'development',
-  productionUrl: process.env.PRODUCTION_URL || 'https://back-auth-0-yanpo.vercel.app',
+  productionUrl: process.env.PRODUCTION_URL || 'https://hono-back-aliado.vercel.app',
   cors: {
     origins: process.env.CORS_ORIGIN?.split(',').map(o => o.trim()) || ['*']
   },
-  auth0: {
-    urlBase: process.env.URL_BASE || '',
-    pathApi: process.env.PATH_API || '/api/v2/',
-    pathToken: process.env.PATH_TOKEN || '/oauth/token',
-    clientId: process.env.AUTH0_CLIENT_ID || '',
-    clientSecret: process.env.AUTH0_CLIENT_SECRET || '',
-    audience: process.env.AUTH0_AUDIENCE || '',
-    grantType: process.env.AUTH0_GRANT_TYPE || 'client_credentials'
+  aliado: {
+    apiUrl: process.env.ALIADO_API_URL || 'https://app.aliaddo.net/v1',
+    bearerToken: process.env.ALIADO_BEARER_TOKEN || ''
   }
 } as const;

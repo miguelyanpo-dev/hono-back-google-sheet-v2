@@ -1,62 +1,59 @@
-Miguel
+# Aliado API Proxy
 
-# Auth0 Management API
+API REST construida con Hono para interactuar con el proveedor de contabilidad Aliado. Este proyecto actúa como un proxy que facilita la comunicación con la API de Aliado, manejando la autenticación y proporcionando endpoints documentados con OpenAPI/Swagger.
 
-API REST para gestionar usuarios y roles de Auth0 usando la Management API v2, construida con [Hono](https://hono.dev/) - un framework web ultrarrápido y ligero para TypeScript.
+## 🚀 Características
 
-## Características
+- **Framework moderno**: Construido con [Hono](https://hono.dev/), un framework web ultrarrápido
+- **TypeScript**: Tipado completo para mayor seguridad y mejor experiencia de desarrollo
+- **OpenAPI/Swagger**: Documentación automática de la API
+- **Módulo de Facturas**: Endpoints para gestionar facturas de Aliado
+- **Autenticación automática**: Token Bearer configurado como variable de entorno
+- **CORS configurado**: Listo para integraciones frontend
 
-- Framework Hono (rápido y ligero)
-- TypeScript
-- **Documentación Swagger/OpenAPI interactiva**
-- Autenticación automática con Auth0
-- Caché de tokens para optimizar peticiones
-- Gestión completa de usuarios (CRUD)
-- Gestión completa de roles (CRUD)
-- Asignación de usuarios a roles
-- CORS configurado
-- Logging de requests
-- Manejo de errores centralizado
-- Validación de campos obligatorios
-- Paginación en listados
-- Desplegable en Vercel
+## 📋 Requisitos
 
-## Instalación
+- Node.js 18 o superior
+- npm o yarn
 
+## 🛠️ Instalación
+
+1. Clona el repositorio:
+```bash
+git clone <repository-url>
+cd hono-back-aliado
+```
+
+2. Instala las dependencias:
 ```bash
 npm install
 ```
 
-## Configuración
-
-1. Copia el archivo `.env.example` a `.env`:
+3. Crea un archivo `.env` basado en `.env.example`:
 ```bash
 cp .env.example .env
 ```
 
-2. Configura las variables de entorno en `.env` con tus credenciales de Auth0:
+4. Configura las variables de entorno en `.env`:
 ```env
 PORT=3001
 NODE_ENV=development
-PRODUCTION_URL=https://back-auth-0-yanpo.vercel.app
-CORS_ORIGIN=http://localhost:3000,http://localhost:5173
+PRODUCTION_URL=https://hono-back-aliado.vercel.app
+CORS_ORIGIN=*
 
-# Auth0 Configuration
-URL_BASE=https://tu-tenant.auth0.com
-PATH_API=/api/v2/
-PATH_TOKEN=/oauth/token
-AUTH0_CLIENT_ID=tu_client_id
-AUTH0_CLIENT_SECRET=tu_client_secret
-AUTH0_AUDIENCE=https://tu-tenant.auth0.com/api/v2/
-AUTH0_GRANT_TYPE=client_credentials
+# Aliado API Configuration
+ALIADO_API_URL=https://app.aliaddo.net/v1
+ALIADO_BEARER_TOKEN=tu_token_aqui
 ```
 
-## Ejecutar
+## 🏃 Uso
 
 ### Desarrollo
 ```bash
 npm run dev
 ```
+
+El servidor se iniciará en `http://localhost:3001`
 
 ### Producción
 ```bash
@@ -64,208 +61,108 @@ npm run build
 npm start
 ```
 
-## Documentación Swagger
+## 📚 Documentación de la API
 
-Accede a la documentación interactiva en:
+Una vez que el servidor esté corriendo, puedes acceder a la documentación interactiva de Swagger en:
 
-```
-http://localhost:3001/api/v1/doc
-```
+- **Desarrollo**: http://localhost:3001/api/v1/doc
+- **Producción**: https://hono-back-aliado.vercel.app/api/v1/doc
 
-Desde Swagger UI puedes:
-- Ver todos los endpoints disponibles
-- Probar las APIs directamente desde el navegador
-- Ver esquemas de request/response
-- Ejecutar peticiones en tiempo real
+## 🔌 Endpoints Disponibles
 
-**Consulta `SWAGGER_GUIDE.md` para más detalles sobre cómo usar Swagger.**
+### Facturas
 
-## Endpoints Disponibles
+#### GET `/api/v1/invoices`
+Obtiene la lista de facturas con paginación.
 
-### Health Check
+**Query Parameters:**
+- `page` (opcional): Número de página (default: 1)
+- `itemsPerPage` (opcional): Cantidad de items por página (default: 10)
+
+**Ejemplo de uso:**
 ```bash
-GET /
+curl --request GET \
+  --url 'http://localhost:3001/api/v1/invoices?page=1&itemsPerPage=10' \
+  --header 'accept: application/json'
 ```
 
-### Rutas con Validación (Recomendadas - con Swagger)
-
-Estas rutas incluyen validación automática con Zod y están documentadas en Swagger:
-
-**Autenticación:**
-- `POST /api/v1/auth/token` - Obtener token de Auth0
-
-**Usuarios:**
-- `GET /api/v1/users` - Listar usuarios
-- `POST /api/v1/users` - Crear usuario
-- `PATCH /api/v1/users/:id` - Actualizar usuario
-- `GET /api/v1/users/:id/roles` - Obtener roles de un usuario
-- `POST /api/v1/users/:id/roles` - Asignar roles a un usuario
-- `DELETE /api/v1/users/:id/roles` - Remover roles de un usuario
-
-**Roles:**
-- `GET /api/v1/roles` - Listar roles
-- `POST /api/v1/roles` - Crear rol
-- `PATCH /api/v1/roles/:id` - Actualizar rol
-- `POST /api/v1/roles/:id/users` - Asignar usuarios a rol
-- `GET /api/v1/roles/:id/users` - Obtener usuarios de un rol
-
-### Rutas sin Validación (Más rápidas)
-
-**Autenticación:**
-
-| Método | Endpoint | Descripción |
-|--------|----------|-------------|
-| `POST` | `/api/auth/token` | Obtener token de Auth0 |
-
-### Usuarios
-
-| Método | Endpoint | Descripción |
-|--------|----------|-------------|
-| `GET` | `/api/users` | Listar usuarios |
-| `POST` | `/api/users` | Crear usuario |
-| `PATCH` | `/api/users/:id` | Actualizar usuario |
-| `GET` | `/api/users/:id/roles` | Obtener roles de un usuario |
-| `POST` | `/api/users/:id/roles` | Asignar roles a un usuario |
-| `DELETE` | `/api/users/:id/roles` | Remover roles de un usuario |
-
-### Roles
-
-| Método | Endpoint | Descripción |
-|--------|----------|-------------|
-| `GET` | `/api/roles` | Listar roles |
-| `POST` | `/api/roles` | Crear rol |
-| `PATCH` | `/api/roles/:id` | Actualizar rol |
-| `POST` | `/api/roles/:id/users` | Asignar usuarios a rol |
-| `GET` | `/api/roles/:id/users` | Obtener usuarios de un rol |
-
-### Ejemplos de uso
-
-**Obtener token:**
-```bash
-curl -X POST http://localhost:3001/api/auth/token
+**Respuesta exitosa (200):**
+```json
+{
+  "success": true,
+  "data": {
+    // Datos de facturas retornados por Aliado
+  }
+}
 ```
 
-**Listar usuarios:**
-```bash
-curl http://localhost:3001/api/users?page=0&per_page=50
+**Respuesta de error (500):**
+```json
+{
+  "success": false,
+  "error": "Error al obtener facturas",
+  "message": "Descripción del error"
+}
 ```
 
-**Crear usuario:**
-```bash
-curl -X POST http://localhost:3001/api/users \
-  -H "Content-Type: application/json" \
-  -d '{
-    "email": "user@example.com",
-    "password": "SecurePass123!",
-    "connection": "Username-Password-Authentication"
-  }'
-```
-
-**Crear rol:**
-```bash
-curl -X POST http://localhost:3001/api/roles \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "Admin",
-    "description": "Administrator role"
-  }'
-```
-
-**Asignar usuarios a rol:**
-```bash
-curl -X POST http://localhost:3001/api/roles/rol_123/users \
-  -H "Content-Type: application/json" \
-  -d '{"users": ["auth0|user1", "auth0|user2"]}'
-```
-
-**Obtener roles de un usuario:**
-```bash
-curl http://localhost:3001/api/users/auth0|123456/roles
-```
-
-**Asignar roles a un usuario:**
-```bash
-curl -X POST http://localhost:3001/api/users/auth0|123456/roles \
-  -H "Content-Type: application/json" \
-  -d '{"roles": ["rol_0VCDtsqSwgR8jUQR", "rol_xWx6xr3Dsa3WLPNE"]}'
-```
-
-**Remover roles de un usuario:**
-```bash
-curl -X DELETE http://localhost:3001/api/users/auth0|123456/roles \
-  -H "Content-Type: application/json" \
-  -d '{"roles": ["rol_0VCDtsqSwgR8jUQR"]}'
-```
-
-**Para más ejemplos detallados, consulta:**
-- `API_DOCUMENTATION.md` - Documentación completa de la API
-- `CURL_EXAMPLES.md` - Ejemplos de uso con cURL y PowerShell
-
-## Estructura del Proyecto
+## 📁 Estructura del Proyecto
 
 ```
-src/
-├── app.ts                    # Configuración principal de Hono
-├── index.ts                  # Entry point
-├── config/
-│   └── config.ts             # Variables de configuración
-├── services/
-│   └── auth.service.ts       # Servicio de autenticación con Auth0
-├── controllers/
-│   ├── auth/
-│   │   └── post_get_token.ts # Obtener token
-│   ├── users/
-│   │   ├── get_users.ts      # Listar usuarios
-│   │   ├── post_create_user.ts # Crear usuario
-│   │   ├── patch_update_user.ts # Actualizar usuario
-│   │   ├── get_user_roles.ts # Obtener roles de usuario
-│   │   ├── post_assign_roles_to_user.ts # Asignar roles a usuario
-│   │   └── delete_remove_roles_from_user.ts # Remover roles de usuario
-│   └── roles/
-│       ├── get_roles.ts      # Listar roles
-│       ├── post_create_role.ts # Crear rol
-│       ├── patch_update_role.ts # Actualizar rol
-│       ├── post_assign_user_to_role.ts # Asignar usuarios
-│       └── get_role_users.ts # Usuarios de un rol
-├── routes/
-│   ├── auth.routes.ts        # Rutas de autenticación
-│   ├── users.routes.ts       # Rutas de usuarios
-│   └── roles.routes.ts       # Rutas de roles
-├── middlewares/
-│   └── logger.ts             # Middleware de logging
-└── types/
-    └── index.ts              # Tipos TypeScript
+hono-back-aliado/
+├── api/
+│   └── index.ts              # Entry point para Vercel
+├── src/
+│   ├── config/
+│   │   └── config.ts         # Configuración de la aplicación
+│   ├── controllers/
+│   │   └── invoices/
+│   │       └── get_invoices.ts
+│   ├── middlewares/
+│   │   └── logger.ts         # Middleware de logging
+│   ├── routes/
+│   │   └── invoices.routes.ts
+│   ├── schemas/
+│   │   └── invoices.schemas.ts
+│   ├── services/
+│   │   └── aliado.service.ts # Servicio para interactuar con Aliado API
+│   ├── app.ts                # Configuración de la aplicación Hono
+│   └── index.ts              # Entry point de la aplicación
+├── .env.example              # Ejemplo de variables de entorno
+├── package.json
+├── tsconfig.json
+└── vercel.json               # Configuración de Vercel
 ```
 
-## Despliegue en Vercel
+## 🔐 Seguridad
 
-```bash
-vercel --prod
-```
+- El token Bearer de Aliado se almacena como variable de entorno y nunca se expone en el código
+- CORS configurado para permitir solo orígenes específicos en producción
+- Manejo de errores centralizado
 
-## Tecnologías
+## 🚀 Despliegue
 
-- [Hono](https://hono.dev/) - Framework web ultrarrápido
-- [TypeScript](https://www.typescriptlang.org/) - Lenguaje
-- [Auth0 Management API](https://auth0.com/docs/api/management/v2) - API de gestión de Auth0
-- [@hono/zod-openapi](https://github.com/honojs/middleware/tree/main/packages/zod-openapi) - OpenAPI con Zod
-- [@hono/swagger-ui](https://github.com/honojs/middleware/tree/main/packages/swagger-ui) - Interfaz Swagger UI
-- [Zod](https://zod.dev/) - Validación de esquemas TypeScript
-- [tsx](https://github.com/esbuild-kit/tsx) - TypeScript executor
-- [dotenv](https://www.npmjs.com/package/dotenv) - Variables de entorno
+### Vercel
 
-## Notas Importantes
+Este proyecto está configurado para desplegarse en Vercel:
 
-1. **Autenticación Automática**: Todas las peticiones a `/api/users` y `/api/roles` obtienen automáticamente un token de Auth0 antes de realizar la petición.
+1. Conecta tu repositorio a Vercel
+2. Configura las variables de entorno en el dashboard de Vercel
+3. Despliega automáticamente con cada push
 
-2. **Caché de Tokens**: El servicio de autenticación implementa un sistema de caché para evitar solicitar tokens innecesariamente.
+## 🤝 Contribución
 
-3. **Variables de Entorno**: Asegúrate de configurar correctamente todas las variables en el archivo `.env`.
+Las contribuciones son bienvenidas. Por favor:
 
-4. **Permisos**: Tu aplicación de Auth0 debe tener los permisos necesarios en la Management API para realizar las operaciones.
+1. Fork el proyecto
+2. Crea una rama para tu feature (`git checkout -b feature/AmazingFeature`)
+3. Commit tus cambios (`git commit -m 'Add some AmazingFeature'`)
+4. Push a la rama (`git push origin feature/AmazingFeature`)
+5. Abre un Pull Request
 
-5. **Documentación**: Consulta `API_DOCUMENTATION.md` para información detallada de cada endpoint.
+## 📝 Licencia
 
-## Licencia
+Este proyecto es privado y de uso interno.
 
-MIT
+## 📧 Contacto
+
+Para preguntas o soporte, contacta al equipo de desarrollo.

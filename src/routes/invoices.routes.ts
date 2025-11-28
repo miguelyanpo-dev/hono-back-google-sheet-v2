@@ -9,8 +9,16 @@ const getInvoicesRoute = createRoute({
   method: 'get',
   path: '/',
   tags: ['Facturas'],
-  summary: 'Listar facturas',
-  description: 'Obtiene la lista de facturas de Aliado con paginación',
+  summary: 'Listar facturas vigentes',
+  description: `Obtiene la lista de facturas de Aliado con paginación.
+  
+**Parámetros fijos (no modificables):**
+- status: Vigente
+- itemsPerPage: 10
+
+**Parámetros variables:**
+- page: Número de página (default: 1)
+- personId: ID de la persona para filtrar (opcional)`,
   request: {
     query: InvoicesQuerySchema,
   },

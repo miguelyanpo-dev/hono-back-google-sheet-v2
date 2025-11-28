@@ -1,13 +1,9 @@
 import { Context } from 'hono';
 import { AliadoService } from '../../services/aliado.service';
 
-export const getInvoices = async (c: Context) => {
+export const getSellers = async (c: Context) => {
   try {
-    const { page = '1', personId } = c.req.query();
-    
-    const pageNum = parseInt(page, 10);
-    
-    const data = await AliadoService.getInvoices(pageNum, personId);
+    const data = await AliadoService.getSellers();
     
     return c.json({ 
       success: true, 
@@ -16,7 +12,7 @@ export const getInvoices = async (c: Context) => {
   } catch (error) {
     return c.json({ 
       success: false, 
-      error: 'Error al obtener facturas', 
+      error: 'Error al obtener vendedores', 
       message: String(error) 
     }, 500);
   }

@@ -1,3 +1,5 @@
+Ultima actualización
+
 # Aliado API Proxy - Miguel
 
 API REST construida con Hono para interactuar con el proveedor de contabilidad Aliado. Este proyecto actúa como un proxy que facilita la comunicación con la API de Aliado, manejando la autenticación y proporcionando endpoints documentados con OpenAPI/Swagger.

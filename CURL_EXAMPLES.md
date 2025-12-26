@@ -23,7 +23,7 @@ curl --request GET \
 **Producción:**
 ```bash
 curl --request GET \
-  --url 'https://hono-back-aliado.vercel.app/api/v1/invoices?page=1&itemsPerPage=10' \
+  --url 'https://hono-back-aliado-contactos.vercel.app/api/v1/invoices?page=1&itemsPerPage=10' \
   --header 'accept: application/json'
 ```
 

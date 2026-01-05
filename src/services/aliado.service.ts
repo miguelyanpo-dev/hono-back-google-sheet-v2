@@ -103,4 +103,29 @@ export class AliadoService {
     const endpoint = 'people/sellers';
     return await this.authenticatedRequest(endpoint);
   }
+
+  /**
+ * Obtiene la lista de contactos (people) desde Aliado
+ */
+  static async getContacts(params: {
+    page?: number;
+    itemsPerPage?: number;
+    identification?: string;
+  }) {
+    const {
+      page = 1,
+      itemsPerPage = 10,
+      identification,
+    } = params;
+
+    let query = `page=${page}&itemsPerPage=${itemsPerPage}&kind=Person`;
+
+    if (identification) {
+      query += `&identification=${identification}`;
+    }
+
+    const endpoint = `people?${query}`;
+    return await this.authenticatedRequest(endpoint);
+  }
+
 }

@@ -8,7 +8,7 @@ const sellersRouter = new OpenAPIHono();
 const getSellersRoute = createRoute({
   method: 'get',
   path: '/',
-  tags: ['Vendedores'],
+  tags: ['Vendedores de aliado'],
   summary: 'Listar vendedores',
   description: 'Obtiene la lista de vendedores desde la API de Aliado.',
   request: {

@@ -4,10 +4,6 @@ import { swaggerUI } from '@hono/swagger-ui';
 import { OpenAPIHono } from '@hono/zod-openapi';
 import { logger } from './middlewares/logger';
 import { config } from './config/config';
-import invoicesRouter from './routes/invoices.routes';
-import invoicesCurrentRouter from './routes/invoices-current.routes';
-import invoicesPartialPaymentRouter from './routes/invoices-partial-payment.routes';
-import sellersRouter from './routes/sellers.routes';
 import contactsRouter from './routes/contacts.routes';
 
 const app = new Hono();
@@ -35,14 +31,6 @@ app.get('/', (c) => {
     timestamp: new Date().toISOString()
   });
 });
-
-// Mount Invoices routes
-apiV1.route('/invoices', invoicesRouter);
-apiV1.route('/invoices-current', invoicesCurrentRouter);
-apiV1.route('/invoices-partial-payment', invoicesPartialPaymentRouter);
-
-// Mount Sellers routes
-apiV1.route('/sellers', sellersRouter);
 
 // Mount contacts routes
 apiV1.route('/contacts', contactsRouter)

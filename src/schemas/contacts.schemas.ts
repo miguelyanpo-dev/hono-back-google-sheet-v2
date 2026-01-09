@@ -8,6 +8,7 @@ export const ContactsQuerySchema = z.object({
   page: z.coerce.number().optional(),
   itemsPerPage: z.coerce.number().optional(),
   identification: z.string().optional(),
+  kind: z.string().optional(),
 });
 
 /**

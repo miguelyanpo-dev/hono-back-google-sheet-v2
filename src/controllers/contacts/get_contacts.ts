@@ -9,6 +9,7 @@ export const getContacts = async (c: Context) => {
       page: query.page ? Number(query.page) : undefined,
       itemsPerPage: query.itemsPerPage ? Number(query.itemsPerPage) : undefined,
       identification: query.identification,
+      kind: query.kind,
     });
 
     return c.json({

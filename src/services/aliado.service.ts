@@ -36,14 +36,16 @@ export class AliadoService {
     page?: number;
     itemsPerPage?: number;
     identification?: string;
+    kind?: string;
   }) {
     const {
       page = 1,
       itemsPerPage = 10,
       identification,
+      kind = 'Person',
     } = params;
 
-    let query = `page=${page}&itemsPerPage=${itemsPerPage}&kind=Person`;
+    let query = `page=${page}&itemsPerPage=${itemsPerPage}&kind=${kind}`;
 
     if (identification) {
       query += `&identification=${identification}`;

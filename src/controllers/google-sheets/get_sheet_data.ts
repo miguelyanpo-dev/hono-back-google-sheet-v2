@@ -4,6 +4,16 @@ import { GoogleSheetsGenericService } from '../../services/google-sheets-generic
 export const getSheetData = async (c: Context) => {
   try {
     const { sheetName } = c.req.param();
+    
+    // Validar que el parámetro sheetName esté presente
+    if (!sheetName) {
+      return c.json({
+        success: false,
+        error: 'Parámetro sheetName requerido',
+        message: 'Debe proporcionar el nombre de la hoja en la URL',
+      }, 400);
+    }
+
     const query = c.req.query();
 
     const googleSheetsService = new GoogleSheetsGenericService();

@@ -66,6 +66,14 @@ const getSheetDataRoute = createRoute({
         },
       },
     },
+    400: {
+      description: 'Parámetro sheetName requerido',
+      content: {
+        'application/json': {
+          schema: ErrorResponse,
+        },
+      },
+    },
     500: {
       description: 'Error al obtener datos de la hoja',
       content: {

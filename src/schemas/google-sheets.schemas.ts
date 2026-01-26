@@ -7,6 +7,7 @@ import { SuccessResponse, ErrorResponse } from './sellers.schemas';
 export const GoogleSheetsQuerySchema = z.object({
   page: z.coerce.number().optional(),
   itemsPerPage: z.coerce.number().optional(),
+  spreadsheetId: z.string().optional(),
 });
 
 /**

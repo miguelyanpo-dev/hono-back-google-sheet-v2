@@ -4,9 +4,12 @@ import { GoogleSheetsGenericService } from '../../services/google-sheets-generic
 export const updateRecord = async (c: Context) => {
   try {
     const { nameSheet, index } = c.req.param();
+    const query = c.req.query();
+    const spreadsheetId = query.spreadsheetId;
+    
     const updateData = await c.req.json();
     
-    const googleSheetsService = new GoogleSheetsGenericService();
+    const googleSheetsService = new GoogleSheetsGenericService(spreadsheetId);
     const updatedRecord = await googleSheetsService.updateRecord(nameSheet, Number(index), updateData);
 
     if (!updatedRecord) {

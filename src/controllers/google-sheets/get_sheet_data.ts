@@ -16,7 +16,10 @@ export const getSheetData = async (c: Context) => {
 
     const query = c.req.query();
 
-    const googleSheetsService = new GoogleSheetsGenericService();
+    // Obtener spreadsheetId del query param o usar el default
+    const spreadsheetId = query.spreadsheetId;
+
+    const googleSheetsService = new GoogleSheetsGenericService(spreadsheetId);
     
     // Obtener todos los datos de la hoja
     console.log('Intentando obtener datos para la hoja:', nameSheet);

@@ -31,7 +31,13 @@ export const SheetsResponse = SuccessResponse.extend({
  */
 export const SheetDataResponse = SuccessResponse.extend({
   data: z.array(z.record(z.string(), z.any())),
-  total: z.number(),
+  pagination: z.object({
+    page: z.number(),
+    itemsPerPage: z.number(),
+    total: z.number(),
+    hasMore: z.boolean(),
+    hasPrev: z.boolean(),
+  }),
 });
 
 /**

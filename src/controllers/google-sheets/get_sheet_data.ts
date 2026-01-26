@@ -23,21 +23,40 @@ export const getSheetData = async (c: Context) => {
     const data = await googleSheetsService.getSheetData(nameSheet);
     console.log('Datos obtenidos exitosamente:', data.length, 'registros');
     
-    // Aplicar paginación si se proporciona
+    // Aplicar paginación con límite máximo de 20 items por página
     let paginatedData = data;
-    if (query.page && query.itemsPerPage) {
-      const page = Number(query.page);
-      const itemsPerPage = Number(query.itemsPerPage);
-      const startIndex = (page - 1) * itemsPerPage;
-      const endIndex = startIndex + itemsPerPage;
-      paginatedData = data.slice(startIndex, endIndex);
+    let page = 1;
+    let itemsPerPage = 20;
+    let hasMore = false;
+    let hasPrev = false;
+
+    if (query.page) {
+      page = Math.max(1, Number(query.page));
     }
+    
+    if (query.itemsPerPage) {
+      itemsPerPage = Math.min(20, Math.max(1, Number(query.itemsPerPage)));
+    }
+
+    const startIndex = (page - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    paginatedData = data.slice(startIndex, endIndex);
+    
+    // Determinar si hay más páginas o páginas anteriores
+    hasMore = endIndex < data.length;
+    hasPrev = page > 1;
 
     return c.json({
       success: true,
       data: paginatedData,
-      total: data.length,
-    }); 
+      pagination: {
+        page,
+        itemsPerPage,
+        total: data.length,
+        hasMore,
+        hasPrev
+      }
+    });
   } catch (error) {
     console.error('Error en getSheetData:', error);
     return c.json({

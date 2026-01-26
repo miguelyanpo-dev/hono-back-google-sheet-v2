@@ -66,27 +66,38 @@ export class GoogleSheetsGenericService {
    */
   async getSheetData(sheetName: string): Promise<SheetData[]> {
     try {
+      console.log('Obteniendo datos de la hoja:', sheetName);
+      console.log('Spreadsheet ID:', this.spreadsheetId);
+      console.log('Auth object:', this.auth ? 'Auth object exists' : 'Auth object is null/undefined');
+
       const response = await this.sheets.spreadsheets.values.get({
         spreadsheetId: this.spreadsheetId,
         range: `${sheetName}!A2:Z`, // Asumimos que la fila 1 tiene encabezados
       });
 
+      console.log('Response received:', response.data);
+
       const rows = response.data.values;
       if (!rows || rows.length === 0) {
+        console.log('No rows found in the sheet');
         return [];
       }
 
       // Obtenemos los encabezados
       const headers = await this.getHeaders(sheetName);
+      console.log('Headers found:', headers);
 
       // Convertimos las filas a objetos usando los encabezados
-      return rows.map(row => {
+      const result = rows.map(row => {
         const rowData: SheetData = {};
         headers.forEach((header, index) => {
           rowData[header] = row[index] || '';
         });
         return rowData;
       });
+
+      console.log('Data processed successfully, total rows:', result.length);
+      return result;
     } catch (error) {
       console.error('Error obteniendo datos de la hoja:', error);
       throw new Error('No se pudieron obtener los datos de la hoja');

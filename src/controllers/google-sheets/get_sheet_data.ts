@@ -27,10 +27,11 @@ export const getSheetData = async (c: Context) => {
       total: data.length,
     });
   } catch (error) {
+    console.error('Error en getSheetData:', error);
     return c.json({
       success: false,
       error: 'Error al obtener datos de la hoja',
-      message: String(error),
+      message: error instanceof Error ? error.message : String(error),
     }, 500);
   }
 };

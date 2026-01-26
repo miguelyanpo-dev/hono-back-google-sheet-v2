@@ -47,13 +47,13 @@ const getSheetsRoute = createRoute({
 // Ruta para obtener datos de una hoja específica
 const getSheetDataRoute = createRoute({
   method: 'get',
-  path: '/:sheetName',
+  path: '/:nameSheet',
   tags: ['Google Sheets'],
   summary: 'Obtener datos de hoja',
   description: 'Obtiene todos los datos de una hoja específica en Google Sheets.',
   request: {
     params: z.object({
-      sheetName: z.string().describe('Nombre de la hoja'),
+      nameSheet: z.string().describe('Nombre de la hoja'),
     }),
     query: GoogleSheetsQuerySchema,
   },
@@ -67,7 +67,7 @@ const getSheetDataRoute = createRoute({
       },
     },
     400: {
-      description: 'Parámetro sheetName requerido',
+      description: 'Parámetro nameSheet requerido',
       content: {
         'application/json': {
           schema: ErrorResponse,
@@ -88,13 +88,13 @@ const getSheetDataRoute = createRoute({
 // Ruta para crear un registro en una hoja específica
 const createRecordRoute = createRoute({
   method: 'post',
-  path: '/:sheetName',
+  path: '/:nameSheet',
   tags: ['Google Sheets'],
   summary: 'Crear registro',
   description: 'Crea un nuevo registro en una hoja específica de Google Sheets.',
   request: {
     params: z.object({
-      sheetName: z.string().describe('Nombre de la hoja'),
+      nameSheet: z.string().describe('Nombre de la hoja'),
     }),
     body: {
       content: {
@@ -127,13 +127,13 @@ const createRecordRoute = createRoute({
 // Ruta para actualizar un registro en una hoja específica
 const updateRecordRoute = createRoute({
   method: 'put',
-  path: '/:sheetName/:index',
+  path: '/:nameSheet/:index',
   tags: ['Google Sheets'],
   summary: 'Actualizar registro',
   description: 'Actualiza un registro existente en una hoja específica de Google Sheets.',
   request: {
     params: z.object({
-      sheetName: z.string().describe('Nombre de la hoja'),
+      nameSheet: z.string().describe('Nombre de la hoja'),
       index: z.string().describe('Índice del registro'),
     }),
     body: {
@@ -175,13 +175,13 @@ const updateRecordRoute = createRoute({
 // Ruta para eliminar un registro de una hoja específica
 const deleteRecordRoute = createRoute({
   method: 'delete',
-  path: '/:sheetName/:index',
+  path: '/:nameSheet/:index',
   tags: ['Google Sheets'],
   summary: 'Eliminar registro',
   description: 'Elimina un registro de una hoja específica en Google Sheets.',
   request: {
     params: z.object({
-      sheetName: z.string().describe('Nombre de la hoja'),
+      nameSheet: z.string().describe('Nombre de la hoja'),
       index: z.string().describe('Índice del registro'),
     }),
   },

@@ -3,13 +3,13 @@ import { GoogleSheetsGenericService } from '../../services/google-sheets-generic
 
 export const getSheetData = async (c: Context) => {
   try {
-    const { sheetName } = c.req.param();
+    const { nameSheet } = c.req.param();
     
-    // Validar que el parámetro sheetName esté presente
-    if (!sheetName) {
+    // Validar que el parámetro nameSheet esté presente
+    if (!nameSheet) {
       return c.json({
         success: false,
-        error: 'Parámetro sheetName requerido',
+        error: 'Parámetro nameSheet requerido',
         message: 'Debe proporcionar el nombre de la hoja en la URL',
       }, 400);
     }
@@ -19,7 +19,9 @@ export const getSheetData = async (c: Context) => {
     const googleSheetsService = new GoogleSheetsGenericService();
     
     // Obtener todos los datos de la hoja
-    const data = await googleSheetsService.getSheetData(sheetName);
+    console.log('Intentando obtener datos para la hoja:', nameSheet);
+    const data = await googleSheetsService.getSheetData(nameSheet);
+    console.log('Datos obtenidos exitosamente:', data.length, 'registros');
     
     // Aplicar paginación si se proporciona
     let paginatedData = data;
@@ -35,7 +37,7 @@ export const getSheetData = async (c: Context) => {
       success: true,
       data: paginatedData,
       total: data.length,
-    });
+    }); 
   } catch (error) {
     console.error('Error en getSheetData:', error);
     return c.json({

@@ -10,7 +10,7 @@ export interface SheetData {
 }
 
 export class GoogleSheetsGenericService {
-  private auth: JWT;
+  private auth: any;
   private sheets: sheets_v4.Sheets;
   private spreadsheetId: string;
 
@@ -23,7 +23,7 @@ export class GoogleSheetsGenericService {
       scopes: ['https://www.googleapis.com/auth/spreadsheets'],
     });
 
-    this.sheets = google.sheets({ version: 'v4', auth: this.auth as any });
+    this.sheets = google.sheets({ version: 'v4', auth: this.auth });
   }
 
   /**

@@ -14,8 +14,8 @@ export class GoogleSheetsGenericService {
   private sheets: sheets_v4.Sheets;
   private spreadsheetId: string;
 
-  constructor() {
-    this.spreadsheetId = config.googleSheets.spreadsheetId;
+  constructor(spreadsheetId?: string) {
+    this.spreadsheetId = spreadsheetId || config.googleSheets.spreadsheetId;
     
     this.auth = new google.auth.JWT({
       email: config.googleSheets.serviceAccountEmail,

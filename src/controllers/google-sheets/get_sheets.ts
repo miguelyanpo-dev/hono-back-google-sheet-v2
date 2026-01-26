@@ -3,7 +3,10 @@ import { GoogleSheetsGenericService } from '../../services/google-sheets-generic
 
 export const getSheets = async (c: Context) => {
   try {
-    const googleSheetsService = new GoogleSheetsGenericService();
+    const query = c.req.query();
+    const spreadsheetId = query.spreadsheetId;
+    
+    const googleSheetsService = new GoogleSheetsGenericService(spreadsheetId);
     const sheetNames = await googleSheetsService.getSheetNames();
 
     return c.json({

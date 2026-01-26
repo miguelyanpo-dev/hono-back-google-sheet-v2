@@ -7,6 +7,9 @@ import { config } from './config/config';
 import contactsRouter from './routes/contacts.routes';
 import googleSheetsRouter from './routes/google-sheets.routes';
 
+// Cargar variables de entorno
+import 'dotenv/config';
+
 const app = new Hono();
 const apiV1 = new OpenAPIHono();
 

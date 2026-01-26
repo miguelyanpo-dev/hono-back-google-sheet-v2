@@ -46,11 +46,11 @@ export class GoogleSheetsGenericService {
   /**
    * Obtiene los encabezados de una hoja específica
    */
-  async getHeaders(sheetName: string): Promise<string[]> {
+  async getHeaders(nameSheet: string): Promise<string[]> {
     try {
       const response = await this.sheets.spreadsheets.values.get({
         spreadsheetId: this.spreadsheetId,
-        range: `${sheetName}!1:1`,
+        range: `${nameSheet}!1:1`,
       });
 
       const headers = response.data.values?.[0] || [];
@@ -64,15 +64,15 @@ export class GoogleSheetsGenericService {
   /**
    * Obtiene todos los datos de una hoja específica
    */
-  async getSheetData(sheetName: string): Promise<SheetData[]> {
+  async getSheetData(nameSheet: string): Promise<SheetData[]> {
     try {
-      console.log('Obteniendo datos de la hoja:', sheetName);
+      console.log('Obteniendo datos de la hoja:', nameSheet);
       console.log('Spreadsheet ID:', this.spreadsheetId);
       console.log('Auth object:', this.auth ? 'Auth object exists' : 'Auth object is null/undefined');
 
       const response = await this.sheets.spreadsheets.values.get({
         spreadsheetId: this.spreadsheetId,
-        range: `${sheetName}!A2:Z`, // Asumimos que la fila 1 tiene encabezados
+        range: `${nameSheet}!A2:Z`, // Asumimos que la fila 1 tiene encabezados
       });
 
       console.log('Response received:', response.data);
@@ -84,7 +84,7 @@ export class GoogleSheetsGenericService {
       }
 
       // Obtenemos los encabezados
-      const headers = await this.getHeaders(sheetName);
+      const headers = await this.getHeaders(nameSheet);
       console.log('Headers found:', headers);
 
       // Convertimos las filas a objetos usando los encabezados
@@ -107,11 +107,11 @@ export class GoogleSheetsGenericService {
   /**
    * Obtiene un registro específico por su índice en una hoja
    */
-  async getRecordByIndex(sheetName: string, index: number): Promise<SheetData | null> {
+  async getRecordByIndex(nameSheet: string, index: number): Promise<SheetData | null> {
     try {
       const response = await this.sheets.spreadsheets.values.get({
         spreadsheetId: this.spreadsheetId,
-        range: `${sheetName}!A${index + 2}:Z${index + 2}`, // +2 porque la fila 1 es encabezado
+        range: `${nameSheet}!A${index + 2}:Z${index + 2}`, // +2 porque la fila 1 es encabezado
       });
 
       const row = response.data.values?.[0];
@@ -119,7 +119,7 @@ export class GoogleSheetsGenericService {
         return null;
       }
 
-      const headers = await this.getHeaders(sheetName);
+      const headers = await this.getHeaders(nameSheet);
       const recordData: SheetData = {};
 
       headers.forEach((header, index) => {
@@ -136,18 +136,18 @@ export class GoogleSheetsGenericService {
   /**
    * Crea un nuevo registro en una hoja específica
    */
-  async createRecord(sheetName: string, recordData: SheetData): Promise<SheetData> {
+  async createRecord(nameSheet: string, recordData: SheetData): Promise<SheetData> {
     try {
       // Primero obtenemos la última fila para saber dónde insertar
       const response = await this.sheets.spreadsheets.values.get({
         spreadsheetId: this.spreadsheetId,
-        range: `${sheetName}!A:A`,
+        range: `${nameSheet}!A:A`,
       });
 
       const lastRow = response.data.values ? response.data.values.length + 1 : 2;
 
       // Obtenemos los encabezados para ordenar los datos
-      const headers = await this.getHeaders(sheetName);
+      const headers = await this.getHeaders(nameSheet);
 
       // Preparamos los valores en el orden de los encabezados
       const values = headers.map(header => recordData[header] || '');
@@ -155,7 +155,7 @@ export class GoogleSheetsGenericService {
       // Insertamos el nuevo registro
       await this.sheets.spreadsheets.values.update({
         spreadsheetId: this.spreadsheetId,
-        range: `${sheetName}!A${lastRow}:${String.fromCharCode(65 + headers.length - 1)}${lastRow}`,
+        range: `${nameSheet}!A${lastRow}:${String.fromCharCode(65 + headers.length - 1)}${lastRow}`,
         valueInputOption: 'RAW',
         requestBody: {
           values: [values],
@@ -178,13 +178,13 @@ export class GoogleSheetsGenericService {
   /**
    * Actualiza un registro existente en una hoja específica
    */
-  async updateRecord(sheetName: string, index: number, updateData: SheetData): Promise<SheetData | null> {
+  async updateRecord(nameSheet: string, index: number, updateData: SheetData): Promise<SheetData | null> {
     try {
       // Obtenemos los encabezados
-      const headers = await this.getHeaders(sheetName);
+      const headers = await this.getHeaders(nameSheet);
 
       // Obtenemos el registro actual
-      const currentRecord = await this.getRecordByIndex(sheetName, index);
+      const currentRecord = await this.getRecordByIndex(nameSheet, index);
       if (!currentRecord) {
         return null;
       }
@@ -198,7 +198,7 @@ export class GoogleSheetsGenericService {
       // Actualizamos el registro
       await this.sheets.spreadsheets.values.update({
         spreadsheetId: this.spreadsheetId,
-        range: `${sheetName}!A${index + 2}:${String.fromCharCode(65 + headers.length - 1)}${index + 2}`,
+        range: `${nameSheet}!A${index + 2}:${String.fromCharCode(65 + headers.length - 1)}${index + 2}`,
         valueInputOption: 'RAW',
         requestBody: {
           values: [values],
@@ -215,7 +215,7 @@ export class GoogleSheetsGenericService {
   /**
    * Elimina un registro de una hoja específica
    */
-  async deleteRecord(sheetName: string, index: number): Promise<boolean> {
+  async deleteRecord(nameSheet: string, index: number): Promise<boolean> {
     try {
       // Obtenemos la fila a eliminar
       const rowNumber = index + 2; // +2 porque la fila 1 es encabezado
@@ -226,7 +226,7 @@ export class GoogleSheetsGenericService {
           requests: [{
             deleteDimension: {
               range: {
-                sheetId: await this.getSheetId(sheetName),
+                sheetId: await this.getSheetId(nameSheet),
                 dimension: 'ROWS',
                 startIndex: rowNumber - 1, // Google Sheets usa 0-indexed para batchUpdate
                 endIndex: rowNumber,
@@ -246,15 +246,15 @@ export class GoogleSheetsGenericService {
   /**
    * Obtiene el ID de una hoja por su nombre
    */
-  private async getSheetId(sheetName: string): Promise<number> {
+  private async getSheetId(nameSheet: string): Promise<number> {
     try {
       const response = await this.sheets.spreadsheets.get({
         spreadsheetId: this.spreadsheetId,
       });
 
-      const sheet = response.data.sheets?.find(s => s.properties?.title === sheetName);
+      const sheet = response.data.sheets?.find(s => s.properties?.title === nameSheet);
       if (!sheet || !sheet.properties?.sheetId) {
-        throw new Error(`Hoja "${sheetName}" no encontrada`);
+        throw new Error(`Hoja "${nameSheet}" no encontrada`);
       }
 
       return sheet.properties.sheetId;

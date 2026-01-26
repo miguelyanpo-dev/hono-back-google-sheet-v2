@@ -3,10 +3,10 @@ import { GoogleSheetsGenericService } from '../../services/google-sheets-generic
 
 export const deleteRecord = async (c: Context) => {
   try {
-    const { sheetName, index } = c.req.param();
+    const { nameSheet, index } = c.req.param();
     
     const googleSheetsService = new GoogleSheetsGenericService();
-    const deleted = await googleSheetsService.deleteRecord(sheetName, Number(index));
+    const deleted = await googleSheetsService.deleteRecord(nameSheet, Number(index));
 
     if (!deleted) {
       return c.json({

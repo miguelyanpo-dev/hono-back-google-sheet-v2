@@ -1,0 +1,30 @@
+import { Context } from 'hono';
+import { GoogleSheetsGenericService } from '../../services/google-sheets-generic.service';
+
+export const deleteRecord = async (c: Context) => {
+  try {
+    const { sheetName, index } = c.req.param();
+    
+    const googleSheetsService = new GoogleSheetsGenericService();
+    const deleted = await googleSheetsService.deleteRecord(sheetName, Number(index));
+
+    if (!deleted) {
+      return c.json({
+        success: false,
+        error: 'Registro no encontrado',
+        message: `No se encontró un registro en el índice: ${index}`,
+      }, 404);
+    }
+
+    return c.json({
+      success: true,
+      message: 'Registro eliminado exitosamente',
+    });
+  } catch (error) {
+    return c.json({
+      success: false,
+      error: 'Error al eliminar registro',
+      message: String(error),
+    }, 500);
+  }
+};

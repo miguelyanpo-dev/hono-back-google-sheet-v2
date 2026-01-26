@@ -8,5 +8,10 @@ export const config = {
   aliado: {
     apiUrl: process.env.ALIADO_API_URL || 'https://app.aliaddo.net/v1',
     bearerToken: process.env.ALIADO_BEARER_TOKEN || ''
+  },
+  googleSheets: {
+    spreadsheetId: process.env.GOOGLE_SHEETS_SPREADSHEET_ID || '',
+    serviceAccountEmail: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL || '',
+    privateKey: process.env.GOOGLE_PRIVATE_KEY || ''
   }
 } as const;

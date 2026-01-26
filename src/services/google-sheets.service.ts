@@ -2,6 +2,9 @@ import { google, sheets_v4 } from 'googleapis';
 import { JWT } from 'google-auth-library';
 import { config } from '../config/config';
 
+// Importamos el tipo correcto de Google Auth Library
+import { GoogleAuth } from 'google-auth-library';
+
 export interface Contact {
   id: string;
   name: string;
@@ -26,7 +29,7 @@ export class GoogleSheetsService {
       scopes: ['https://www.googleapis.com/auth/spreadsheets'],
     });
 
-    this.sheets = google.sheets({ version: 'v4', auth: this.auth });
+    this.sheets = google.sheets({ version: 'v4', auth: this.auth as any });
   }
 
   /**

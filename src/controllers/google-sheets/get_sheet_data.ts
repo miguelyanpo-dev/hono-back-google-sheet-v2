@@ -26,8 +26,38 @@ export const getSheetData = async (c: Context) => {
     const data = await googleSheetsService.getSheetData(nameSheet);
     console.log('Datos obtenidos exitosamente:', data.length, 'registros');
     
+    // Filtrar por ranking si se proporciona el parámetro
+    let filteredData = data;
+    if (query.ranking) {
+      const rankingFilter = query.ranking.toLowerCase();
+      const rankingMap: Record<string, string> = {
+        'perdidos': 'Perdidos 🌠',
+        'dormidos': 'Dormidos 😴',
+        'frios': 'Fríos ⛄',
+        'tibios': 'Tibios 🌡️',
+        'calientes': 'Calientes 🔥'
+      };
+      
+      const mappedRanking = rankingMap[rankingFilter];
+      if (mappedRanking) {
+        filteredData = data.filter(row => {
+          // Buscar en todas las columnas el valor del ranking
+          return Object.values(row).some(value => 
+            typeof value === 'string' && value.trim() === mappedRanking
+          );
+        });
+        console.log(`Datos filtrados por ranking "${mappedRanking}":`, filteredData.length, 'registros');
+      } else {
+        return c.json({
+          success: false,
+          error: 'Ranking no válido',
+          message: 'Los rankings válidos son: perdidos, dormidos, frios, tibios, calientes',
+        }, 400);
+      }
+    }
+    
     // Aplicar paginación con límite máximo de 20 items por página
-    let paginatedData = data;
+    let paginatedData = filteredData;
     let page = 1;
     let itemsPerPage = 20;
     let hasMore = false;
@@ -43,10 +73,10 @@ export const getSheetData = async (c: Context) => {
 
     const startIndex = (page - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
-    paginatedData = data.slice(startIndex, endIndex);
+    paginatedData = filteredData.slice(startIndex, endIndex);
     
     // Determinar si hay más páginas o páginas anteriores
-    hasMore = endIndex < data.length;
+    hasMore = endIndex < filteredData.length;
     hasPrev = page > 1;
 
     return c.json({
@@ -55,7 +85,7 @@ export const getSheetData = async (c: Context) => {
       pagination: {
         page,
         itemsPerPage,
-        total: data.length,
+        total: filteredData.length,
         hasMore,
         hasPrev
       }

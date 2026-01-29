@@ -17,6 +17,11 @@ export class GoogleSheetsGenericService {
   constructor(spreadsheetId?: string) {
     this.spreadsheetId = spreadsheetId || config.googleSheets.spreadsheetId;
     
+    // Validamos que las credenciales estén configuradas
+    if (!config.googleSheets.serviceAccountEmail || !config.googleSheets.privateKey) {
+      throw new Error('Las credenciales de Google Sheets no están configuradas correctamente. Verifica que GOOGLE_SERVICE_ACCOUNT_EMAIL y GOOGLE_PRIVATE_KEY estén definidas en el archivo .env');
+    }
+    
     this.auth = new google.auth.JWT({
       email: config.googleSheets.serviceAccountEmail,
       key: config.googleSheets.privateKey,
@@ -70,9 +75,15 @@ export class GoogleSheetsGenericService {
       console.log('Spreadsheet ID:', this.spreadsheetId);
       console.log('Auth object:', this.auth ? 'Auth object exists' : 'Auth object is null/undefined');
 
+      // Validamos que la hoja exista antes de intentar obtener datos
+      const sheetNames = await this.getSheetNames();
+      if (!sheetNames.includes(nameSheet)) {
+        throw new Error(`La hoja "${nameSheet}" no existe en el documento. Hojas disponibles: ${sheetNames.join(', ')}`);
+      }
+
       const response = await this.sheets.spreadsheets.values.get({
         spreadsheetId: this.spreadsheetId,
-        range: `${nameSheet}!A2:Z`, // Asumimos que la fila 1 tiene encabezados
+        range: `${nameSheet}!A2:AB`, // Asumimos que la fila 1 tiene encabezados y las columnas van de A a AB
       });
 
       console.log('Response received:', response.data);
@@ -100,6 +111,9 @@ export class GoogleSheetsGenericService {
       return result;
     } catch (error) {
       console.error('Error obteniendo datos de la hoja:', error);
+      if (error instanceof Error) {
+        throw new Error(`No se pudieron obtener los datos de la hoja: ${error.message}`);
+      }
       throw new Error('No se pudieron obtener los datos de la hoja');
     }
   }

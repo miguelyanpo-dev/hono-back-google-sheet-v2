@@ -75,6 +75,26 @@ export const getSheetData = async (c: Context) => {
       });
       console.log(`Datos filtrados por sellerName "${query.sellerName}":`, filteredData.length, 'registros');
     }
+
+    // Filtrar por status_ranking si se proporciona el parámetro
+    if (query.status_ranking) {
+      const statusRankingFilter = query.status_ranking.toLowerCase();
+      const validStatusRankings = ['calientes', 'tibios', 'frios', 'dormidos', 'perdidos'];
+      
+      if (validStatusRankings.includes(statusRankingFilter)) {
+        filteredData = filteredData.filter(row => {
+          const statusRanking = String(row.status_ranking || '').toLowerCase();
+          return statusRanking.includes(statusRankingFilter);
+        });
+        console.log(`Datos filtrados por status_ranking "${statusRankingFilter}":`, filteredData.length, 'registros');
+      } else {
+        return c.json({
+          success: false,
+          error: 'Status ranking no válido',
+          message: 'Los status rankings válidos son: calientes, tibios, frios, dormidos, perdidos',
+        }, 400);
+      }
+    }
     
     // Aplicar paginación con límite máximo de 20 items por página
     let paginatedData = filteredData;

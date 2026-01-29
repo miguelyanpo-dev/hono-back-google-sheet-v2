@@ -95,6 +95,16 @@ export const getSheetData = async (c: Context) => {
         }, 400);
       }
     }
+
+    // Filtrar por status si se proporciona el parámetro
+    if (query.status) {
+      const statusFilter = query.status.toLowerCase();
+      filteredData = filteredData.filter(row => {
+        const status = String(row.status || '').toLowerCase();
+        return status.includes(statusFilter);
+      });
+      console.log(`Datos filtrados por status "${query.status}":`, filteredData.length, 'registros');
+    }
     
     // Aplicar paginación con límite máximo de 20 items por página
     let paginatedData = filteredData;

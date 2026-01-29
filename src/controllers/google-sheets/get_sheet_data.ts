@@ -120,6 +120,16 @@ export const getSheetData = async (c: Context) => {
       });
       console.log(`Datos filtrados por date "${query.date}":`, filteredData.length, 'registros');
     }
+
+    // Filtrar por addressBillingRegion si se proporciona el parámetro
+    if (query.addressBillingRegion) {
+      const addressBillingRegionFilter = query.addressBillingRegion.toLowerCase();
+      filteredData = filteredData.filter(row => {
+        const addressBillingRegion = String(row.addressBillingRegion || '').toLowerCase();
+        return addressBillingRegion.includes(addressBillingRegionFilter);
+      });
+      console.log(`Datos filtrados por addressBillingRegion "${query.addressBillingRegion}":`, filteredData.length, 'registros');
+    }
     
     // Aplicar paginación con límite máximo de 20 items por página
     let paginatedData = filteredData;

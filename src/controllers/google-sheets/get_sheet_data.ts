@@ -153,9 +153,9 @@ export const getSheetData = async (c: Context) => {
 
     // Filtrar por consecutive si se proporciona el parámetro
     if (query.consecutive) {
-      const consecutiveFilter = query.consecutive.toLowerCase();
+      const consecutiveFilter = query.consecutive.toUpperCase(); // Convertir a mayúsculas para coincidir con el formato de los datos
       filteredData = filteredData.filter(row => {
-        const consecutive = String(row.consecutive || '').toLowerCase();
+        const consecutive = String(row.consecutive || '').toUpperCase();
         return consecutive.includes(consecutiveFilter);
       });
       console.log(`Datos filtrados por consecutive "${query.consecutive}":`, filteredData.length, 'registros');

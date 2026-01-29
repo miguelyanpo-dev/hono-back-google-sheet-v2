@@ -105,6 +105,21 @@ export const getSheetData = async (c: Context) => {
       });
       console.log(`Datos filtrados por status "${query.status}":`, filteredData.length, 'registros');
     }
+
+    // Filtrar por date si se proporciona el parámetro
+    if (query.date) {
+      const dateFilter = query.date;
+      filteredData = filteredData.filter(row => {
+        const date = String(row.date || '');
+        // Si el filtro es un año (4 dígitos), buscar en cualquier parte de la fecha
+        if (/^\d{4}$/.test(dateFilter)) {
+          return date.includes(dateFilter);
+        }
+        // Si es una fecha completa o parcial, buscar coincidencia exacta
+        return date.toLowerCase().includes(dateFilter.toLowerCase());
+      });
+      console.log(`Datos filtrados por date "${query.date}":`, filteredData.length, 'registros');
+    }
     
     // Aplicar paginación con límite máximo de 20 items por página
     let paginatedData = filteredData;

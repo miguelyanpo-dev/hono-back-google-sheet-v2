@@ -150,6 +150,16 @@ export const getSheetData = async (c: Context) => {
       });
       console.log(`Datos filtrados por personIdentification "${query.personIdentification}":`, filteredData.length, 'registros');
     }
+
+    // Filtrar por consecutive si se proporciona el parámetro
+    if (query.consecutive) {
+      const consecutiveFilter = query.consecutive.toLowerCase();
+      filteredData = filteredData.filter(row => {
+        const consecutive = String(row.consecutive || '').toLowerCase();
+        return consecutive.includes(consecutiveFilter);
+      });
+      console.log(`Datos filtrados por consecutive "${query.consecutive}":`, filteredData.length, 'registros');
+    }
     
     // Aplicar paginación con límite máximo de 20 items por página
     let paginatedData = filteredData;

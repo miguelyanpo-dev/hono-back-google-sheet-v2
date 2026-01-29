@@ -55,6 +55,16 @@ export const getSheetData = async (c: Context) => {
         }, 400);
       }
     }
+
+    // Filtrar por personName si se proporciona el parámetro
+    if (query.personName) {
+      const personNameFilter = query.personName.toLowerCase();
+      filteredData = filteredData.filter(row => {
+        const personName = String(row.personName || '').toLowerCase();
+        return personName.includes(personNameFilter);
+      });
+      console.log(`Datos filtrados por personName "${query.personName}":`, filteredData.length, 'registros');
+    }
     
     // Aplicar paginación con límite máximo de 20 items por página
     let paginatedData = filteredData;

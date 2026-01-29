@@ -140,6 +140,16 @@ export const getSheetData = async (c: Context) => {
       });
       console.log(`Datos filtrados por addressBillingCity "${query.addressBillingCity}":`, filteredData.length, 'registros');
     }
+
+    // Filtrar por personIdentification si se proporciona el parámetro
+    if (query.personIdentification) {
+      const personIdentificationFilter = query.personIdentification.toLowerCase();
+      filteredData = filteredData.filter(row => {
+        const personIdentification = String(row.personIdentification || '').toLowerCase();
+        return personIdentification.includes(personIdentificationFilter);
+      });
+      console.log(`Datos filtrados por personIdentification "${query.personIdentification}":`, filteredData.length, 'registros');
+    }
     
     // Aplicar paginación con límite máximo de 20 items por página
     let paginatedData = filteredData;

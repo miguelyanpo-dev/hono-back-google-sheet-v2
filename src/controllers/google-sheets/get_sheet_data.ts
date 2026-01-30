@@ -207,6 +207,14 @@ export const getSheetData = async (c: Context) => {
     hasMore = endIndex < filteredData.length;
     hasPrev = page > 1;
 
+    // Calcular totales por status_ranking
+    const totalTodos = filteredData.length;
+    const totalCalientes = filteredData.filter(row => String(row.status_ranking || '').toLowerCase().includes('calientes')).length;
+    const totalTibios = filteredData.filter(row => String(row.status_ranking || '').toLowerCase().includes('tibios')).length;
+    const totalFrios = filteredData.filter(row => String(row.status_ranking || '').toLowerCase().includes('frios')).length;
+    const totalDormidos = filteredData.filter(row => String(row.status_ranking || '').toLowerCase().includes('dormidos')).length;
+    const totalPerdidos = filteredData.filter(row => String(row.status_ranking || '').toLowerCase().includes('perdidos')).length;
+
     return c.json({
       success: true,
       data: paginatedData,
@@ -215,7 +223,15 @@ export const getSheetData = async (c: Context) => {
         itemsPerPage,
         total: filteredData.length,
         hasMore,
-        hasPrev
+        hasPrev,
+        totals: {
+          totalTodos,
+          totalCalientes,
+          totalTibios,
+          totalFrios,
+          totalDormidos,
+          totalPerdidos
+        }
       }
     });
   } catch (error) {

@@ -160,11 +160,34 @@ export const getSheetData = async (c: Context) => {
       });
       console.log(`Datos filtrados por consecutive "${query.consecutive}":`, filteredData.length, 'registros');
     }
+
+    // Filtrar por itemsPerPage si se proporciona el parámetro
+    if (query.itemsPerPage) {
+      const itemsPerPageFilter = Number(query.itemsPerPage);
+      if (!isNaN(itemsPerPageFilter) && itemsPerPageFilter > 0 && itemsPerPageFilter <= 1000) {
+        // Aplicar paginación con el valor proporcionado
+        let page = 1;
+        if (query.page) {
+          page = Math.max(1, Number(query.page));
+        }
+        
+        const startIndex = (page - 1) * itemsPerPageFilter;
+        const endIndex = startIndex + itemsPerPageFilter;
+        filteredData = filteredData.slice(startIndex, endIndex);
+        console.log(`Datos filtrados por itemsPerPage "${itemsPerPageFilter}":`, filteredData.length, 'registros');
+      } else {
+        return c.json({
+          success: false,
+          error: 'Items per page no válido',
+          message: 'El valor de itemsPerPage debe ser un número entre 1 y 1000',
+        }, 400);
+      }
+    }
     
-    // Aplicar paginación con límite máximo de 20 items por página
+    // Aplicar paginación con límite máximo de 1000 items por página y valor por defecto de 20
     let paginatedData = filteredData;
     let page = 1;
-    let itemsPerPage = 20;
+    let itemsPerPage = 20; // Valor por defecto
     let hasMore = false;
     let hasPrev = false;
 
@@ -173,7 +196,7 @@ export const getSheetData = async (c: Context) => {
     }
     
     if (query.itemsPerPage) {
-      itemsPerPage = Math.min(20, Math.max(1, Number(query.itemsPerPage)));
+      itemsPerPage = Math.min(1000, Math.max(1, Number(query.itemsPerPage)));
     }
 
     const startIndex = (page - 1) * itemsPerPage;

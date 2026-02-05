@@ -141,6 +141,16 @@ export const getSheetData = async (c: Context) => {
       console.log('Datos ordenados por fecha descendente');
     }
 
+    // Ordenar por daysFromDate de menor a mayor si se proporciona el parámetro sort=daysFromDate
+    if (query.sort === 'daysFromDate') {
+      filteredData.sort((a, b) => {
+        const daysA = Number(String(a.daysFromDate || '0'));
+        const daysB = Number(String(b.daysFromDate || '0'));
+        return daysA - daysB;
+      });
+      console.log('Datos ordenados por daysFromDate de menor a mayor');
+    }
+
     // Filtrar por addressBillingRegion si se proporciona el parámetro
     if (query.addressBillingRegion) {
       const addressBillingRegionFilter = query.addressBillingRegion.toLowerCase();

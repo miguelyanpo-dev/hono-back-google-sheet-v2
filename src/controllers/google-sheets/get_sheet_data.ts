@@ -244,6 +244,8 @@ export const getSheetData = async (c: Context) => {
     const totalFrios = filteredData.filter(row => String(row.status_ranking || '').toLowerCase().includes('frios')).length;
     const totalDormidos = filteredData.filter(row => String(row.status_ranking || '').toLowerCase().includes('dormidos')).length;
     const totalPerdidos = filteredData.filter(row => String(row.status_ranking || '').toLowerCase().includes('perdidos')).length;
+    const totalAntiguos = filteredData.filter(row => String(row.status_ranking || '').toLowerCase().includes('antiguos')).length;
+    const totalListaNegra = filteredData.filter(row => String(row.status_ranking || '').toLowerCase().includes('listanegra')).length;
 
     return c.json({
       success: true,
@@ -260,7 +262,9 @@ export const getSheetData = async (c: Context) => {
           totalTibios,
           totalFrios,
           totalDormidos,
-          totalPerdidos
+          totalPerdidos,
+          totalAntiguos,
+          totalListaNegra
         }
       }
     });

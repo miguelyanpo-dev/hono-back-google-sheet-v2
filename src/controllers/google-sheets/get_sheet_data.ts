@@ -35,7 +35,9 @@ export const getSheetData = async (c: Context) => {
         'dormidos': 'Dormidos 😴',
         'frios': 'Fríos ⛄',
         'tibios': 'Tibios 🌡️',
-        'calientes': 'Calientes 🔥'
+        'calientes': 'Calientes 🔥',
+        'antiguos': 'Antiguos 🕰️',
+        'listanegra': 'Lista Negra 🚫'
       };
       
       const mappedRanking = rankingMap[rankingFilter];
@@ -51,7 +53,7 @@ export const getSheetData = async (c: Context) => {
         return c.json({
           success: false,
           error: 'Ranking no válido',
-          message: 'Los rankings válidos son: perdidos, dormidos, frios, tibios, calientes',
+          message: 'Los rankings válidos son: perdidos, dormidos, frios, tibios, calientes, antiguos, listanegra',
         }, 400);
       }
     }
@@ -79,7 +81,7 @@ export const getSheetData = async (c: Context) => {
     // Filtrar por status_ranking si se proporciona el parámetro
     if (query.status_ranking) {
       const statusRankingFilter = query.status_ranking.toLowerCase();
-      const validStatusRankings = ['calientes', 'tibios', 'frios', 'dormidos', 'perdidos'];
+      const validStatusRankings = ['calientes', 'tibios', 'frios', 'dormidos', 'perdidos', 'antiguos', 'listanegra'];
       
       if (validStatusRankings.includes(statusRankingFilter)) {
         filteredData = filteredData.filter(row => {
@@ -91,7 +93,7 @@ export const getSheetData = async (c: Context) => {
         return c.json({
           success: false,
           error: 'Status ranking no válido',
-          message: 'Los status rankings válidos son: calientes, tibios, frios, dormidos, perdidos',
+          message: 'Los status rankings válidos son: calientes, tibios, frios, dormidos, perdidos, antiguos, listanegra',
         }, 400);
       }
     }

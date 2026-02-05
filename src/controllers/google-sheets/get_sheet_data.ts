@@ -121,6 +121,16 @@ export const getSheetData = async (c: Context) => {
       console.log(`Datos filtrados por date "${query.date}":`, filteredData.length, 'registros');
     }
 
+    // Ordenar por date si se proporciona el parámetro sort=date
+    if (query.sort === 'date') {
+      filteredData.sort((a, b) => {
+        const dateA = new Date(String(a.date || ''));
+        const dateB = new Date(String(b.date || ''));
+        return dateA.getTime() - dateB.getTime();
+      });
+      console.log('Datos ordenados por fecha ascendente');
+    }
+
     // Filtrar por addressBillingRegion si se proporciona el parámetro
     if (query.addressBillingRegion) {
       const addressBillingRegionFilter = query.addressBillingRegion.toLowerCase();

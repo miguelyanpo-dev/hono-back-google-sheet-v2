@@ -1,6 +1,7 @@
 import { google, sheets_v4 } from 'googleapis';
 import { JWT } from 'google-auth-library';
 import { config } from '../config/config';
+import * as path from 'path';
 
 // Importamos el tipo correcto de Google Auth Library
 import { GoogleAuth } from 'google-auth-library';
@@ -17,14 +18,11 @@ export class GoogleSheetsGenericService {
   constructor(spreadsheetId?: string) {
     this.spreadsheetId = spreadsheetId || config.googleSheets.spreadsheetId;
     
-    // Validamos que las credenciales estén configuradas
-    if (!config.googleSheets.serviceAccountEmail || !config.googleSheets.privateKey) {
-      throw new Error('Las credenciales de Google Sheets no están configuradas correctamente. Verifica que GOOGLE_SERVICE_ACCOUNT_EMAIL y GOOGLE_PRIVATE_KEY estén definidas en el archivo .env');
-    }
+    // Ruta al archivo de credenciales
+    const credentialsPath = path.join(__dirname, '../credentials/credentials.json');
     
-    this.auth = new google.auth.JWT({
-      email: config.googleSheets.serviceAccountEmail,
-      key: config.googleSheets.privateKey,
+    this.auth = new google.auth.GoogleAuth({
+      keyFile: credentialsPath,
       scopes: ['https://www.googleapis.com/auth/spreadsheets'],
     });
 

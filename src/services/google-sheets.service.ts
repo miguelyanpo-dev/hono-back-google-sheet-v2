@@ -1,6 +1,7 @@
 import { google, sheets_v4 } from 'googleapis';
 import { JWT } from 'google-auth-library';
 import { config } from '../config/config';
+import * as path from 'path';
 
 // Importamos el tipo correcto de Google Auth Library
 import { GoogleAuth } from 'google-auth-library';
@@ -23,9 +24,11 @@ export class GoogleSheetsService {
   constructor() {
     this.spreadsheetId = config.googleSheets.spreadsheetId;
     
-    this.auth = new google.auth.JWT({
-      email: config.googleSheets.serviceAccountEmail,
-      key: config.googleSheets.privateKey,
+    // Ruta al archivo de credenciales
+    const credentialsPath = path.join(__dirname, '../credentials/credentials.json');
+    
+    this.auth = new google.auth.GoogleAuth({
+      keyFile: credentialsPath,
       scopes: ['https://www.googleapis.com/auth/spreadsheets'],
     });
 

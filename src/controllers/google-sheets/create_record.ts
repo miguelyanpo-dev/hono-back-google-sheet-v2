@@ -17,6 +17,7 @@ export const createRecord = async (c: Context) => {
       data: newRecord,
     }, 201);
   } catch (error) {
+    console.error('Error en createRecord:', error);
     return c.json({
       success: false,
       error: 'Error al crear registro',

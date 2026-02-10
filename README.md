@@ -1,4 +1,4 @@
-Ultima actualización
+Ultima actualización 10/02/2026
 
 # Aliado API Proxy - Miguel
 

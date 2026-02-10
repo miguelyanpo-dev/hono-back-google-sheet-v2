@@ -12,11 +12,15 @@ export interface SheetData {
 
 export class GoogleSheetsGenericService {
   private auth: any;
-  private sheets: sheets_v4.Sheets;
-  private spreadsheetId: string;
+  public sheets: sheets_v4.Sheets;
+  private _spreadsheetId: string;
+
+  get spreadsheetId(): string {
+    return this._spreadsheetId;
+  }
 
   constructor(spreadsheetId?: string) {
-    this.spreadsheetId = spreadsheetId || config.googleSheets.spreadsheetId;
+    this._spreadsheetId = spreadsheetId || config.googleSheets.spreadsheetId;
     
     // Usamos las credenciales del environment variable en lugar del archivo
     const credentials = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT || '{}');

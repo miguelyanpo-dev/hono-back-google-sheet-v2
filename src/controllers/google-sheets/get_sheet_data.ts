@@ -37,6 +37,7 @@ export const getSheetData = async (c: Context) => {
         'tibios': 'Tibios 🌡️',
         'calientes': 'Calientes 🔥',
         'antiguos': 'Antiguos 🕰️',
+        'excluidos': 'Excluidos 🚫',
         'listanegra': 'Lista Negra 🚫'
       };
       
@@ -53,7 +54,7 @@ export const getSheetData = async (c: Context) => {
         return c.json({
           success: false,
           error: 'Ranking no válido',
-          message: 'Los rankings válidos son: perdidos, dormidos, frios, tibios, calientes, antiguos, listanegra',
+          message: 'Los rankings válidos son: perdidos, dormidos, frios, tibios, calientes, antiguos, excluido, listanegra',
         }, 400);
       }
     }
@@ -81,7 +82,7 @@ export const getSheetData = async (c: Context) => {
     // Filtrar por status_ranking si se proporciona el parámetro
     if (query.status_ranking) {
       const statusRankingFilter = query.status_ranking.toLowerCase();
-      const validStatusRankings = ['calientes', 'tibios', 'frios', 'dormidos', 'perdidos', 'antiguos', 'listanegra'];
+      const validStatusRankings = ['calientes', 'tibios', 'frios', 'dormidos', 'perdidos', 'antiguos', 'excluido', 'listanegra'];
       
       if (validStatusRankings.includes(statusRankingFilter)) {
         filteredData = filteredData.filter(row => {
@@ -93,7 +94,7 @@ export const getSheetData = async (c: Context) => {
         return c.json({
           success: false,
           error: 'Status ranking no válido',
-          message: 'Los status rankings válidos son: calientes, tibios, frios, dormidos, perdidos, antiguos, listanegra',
+          message: 'Los status rankings válidos son: calientes, tibios, frios, dormidos, perdidos, antiguos, excluido, listanegra',
         }, 400);
       }
     }
@@ -247,7 +248,9 @@ export const getSheetData = async (c: Context) => {
     const totalDormidos = filteredData.filter(row => String(row.status_ranking || '').toLowerCase().includes('dormidos')).length;
     const totalPerdidos = filteredData.filter(row => String(row.status_ranking || '').toLowerCase().includes('perdidos')).length;
     const totalAntiguos = filteredData.filter(row => String(row.status_ranking || '').toLowerCase().includes('antiguos')).length;
+    const totalExcluidos = filteredData.filter(row => String(row.status_ranking || '').toLowerCase().includes('excluido')).length;
     const totalListaNegra = filteredData.filter(row => String(row.status_ranking || '').toLowerCase().includes('listanegra')).length;
+    
 
     return c.json({
       success: true,
@@ -266,6 +269,7 @@ export const getSheetData = async (c: Context) => {
           totalDormidos,
           totalPerdidos,
           totalAntiguos,
+          totalExcluidos,
           totalListaNegra
         }
       }

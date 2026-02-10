@@ -18,11 +18,11 @@ export class GoogleSheetsGenericService {
   constructor(spreadsheetId?: string) {
     this.spreadsheetId = spreadsheetId || config.googleSheets.spreadsheetId;
     
-    // Ruta al archivo de credenciales
-    const credentialsPath = path.join(__dirname, '../credentials/credentials.json');
+    // Usamos las credenciales del environment variable en lugar del archivo
+    const credentials = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT || '{}');
     
     this.auth = new google.auth.GoogleAuth({
-      keyFile: credentialsPath,
+      credentials: credentials,
       scopes: ['https://www.googleapis.com/auth/spreadsheets'],
     });
 

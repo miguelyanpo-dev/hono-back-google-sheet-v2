@@ -86,7 +86,19 @@ async function reorderDataByPersonIdentification(
 
     // Preparar los valores para actualizar en Google Sheets
     const values = remainingData.map(record => {
-      return headers.map(header => record[header] || '');
+      return headers.map(header => {
+        const value = record[header];
+        // Si el valor es un número, mantenerlo como número
+        if (typeof value === 'number') {
+          return value;
+        }
+        // Si es un string que parece un número, convertirlo a número
+        if (typeof value === 'string' && !isNaN(Number(value))) {
+          return Number(value);
+        }
+        // Para otros casos, devolver el valor tal cual
+        return value || '';
+      });
     });
 
     // Actualizar el rango de datos en Google Sheets

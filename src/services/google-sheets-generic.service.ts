@@ -85,7 +85,7 @@ export class GoogleSheetsGenericService {
 
       const response = await this.sheets.spreadsheets.values.get({
         spreadsheetId: this.spreadsheetId,
-        range: `${nameSheet}!A2:AG`, // Asumimos que la fila 1 tiene encabezados y las columnas van de A a AB
+        range: `${nameSheet}!A2:AI`, // Asumimos que la fila 1 tiene encabezados y las columnas van de A a AB
       });
 
       console.log('Response received:', response.data);

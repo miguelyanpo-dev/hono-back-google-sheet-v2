@@ -194,6 +194,26 @@ export const getSheetData = async (c: Context) => {
       console.log(`Datos filtrados por consecutive "${query.consecutive}":`, filteredData.length, 'registros');
     }
 
+    // Filtrar por reasignado si se proporciona el parámetro
+    if (query.reasignado) {
+      const reasignadoFilter = query.reasignado;
+      filteredData = filteredData.filter(row => {
+        const reasignado = String(row.reasignado || '');
+        return reasignado === reasignadoFilter;
+      });
+      console.log(`Datos filtrados por reasignado "${query.reasignado}":`, filteredData.length, 'registros');
+    }
+
+    // Filtrar por misSeguimientos si se proporciona el parámetro
+    if (query.misSeguimientos) {
+      const misSeguimientosFilter = query.misSeguimientos;
+      filteredData = filteredData.filter(row => {
+        const misSeguimientos = String(row.misSeguimientos || '');
+        return misSeguimientos === misSeguimientosFilter;
+      });
+      console.log(`Datos filtrados por misSeguimientos "${query.misSeguimientos}":`, filteredData.length, 'registros');
+    }
+
     // Filtrar por itemsPerPage si se proporciona el parámetro
     if (query.itemsPerPage) {
       const itemsPerPageFilter = Number(query.itemsPerPage);

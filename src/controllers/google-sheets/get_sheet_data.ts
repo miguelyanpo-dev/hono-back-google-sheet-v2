@@ -271,6 +271,10 @@ export const getSheetData = async (c: Context) => {
     const totalExcluidos = filteredData.filter(row => String(row.status_ranking || '').toLowerCase().includes('excluido')).length;
     const totalListaNegra = filteredData.filter(row => String(row.status_ranking || '').toLowerCase().includes('listanegra')).length;
     
+    // Calcular totales para reasignado y misSeguimientos
+    const totalReasignados = filteredData.filter(row => String(row.reasignado || '') === '1').length;
+    const totalMisSeguimientos = filteredData.filter(row => String(row.misSeguimientos || '') === '1').length;
+    
 
     return c.json({
       success: true,
@@ -290,7 +294,9 @@ export const getSheetData = async (c: Context) => {
           totalPerdidos,
           totalAntiguos,
           totalExcluidos,
-          totalListaNegra
+          totalListaNegra,
+          totalReasignados,
+          totalMisSeguimientos
         }
       }
     });
